@@ -44,7 +44,10 @@ const state = {
   stars: 0,
   nextCheckpoint: 0,
   lastAct: 0,
+  finished: false,
   autoJumpTimer: 0,
+  autoBestX: 220,
+  autoRescueTimer: 0,
   toastTimer: 0,
   cameraX: 0,
   cameraTarget: 0,
@@ -185,7 +188,7 @@ function changeRole() {
 }
 
 function resetGame() {
-  state.time = 0; state.stars = 0; state.nextCheckpoint = 0; state.lastAct = 0; state.cameraX = 0; state.cameraTarget = 0; state.autoJumpTimer = 0;
+  state.time = 0; state.stars = 0; state.nextCheckpoint = 0; state.lastAct = 0; state.finished = false; state.cameraX = 0; state.cameraTarget = 0; state.autoJumpTimer = 0; state.autoBestX = 220; state.autoRescueTimer = 0;
   state.player = { x: 220, y: FLOOR_Y - 122, w: 58, h: 122, vx: 0, vy: 0, onGround: false, dir: 1, safeX: 220 };
   world.stars.forEach(s => { s.taken = false; }); world.beacons.forEach(b => { b.lit = false; });
   updateHUD();
@@ -246,12 +249,46 @@ function update(dt) {
   }
 
   if (p.y > H + 260) {
-    p.x = Math.max(200, p.safeX - 60); p.y = FLOOR_Y - p.h - 40; p.vy = -250; p.vx = 40;
+    const futurePlatforms = state.auto
+      ? world.platforms.filter((platform) => platform.x > Math.max(p.x, p.safeX) + 90).sort((a, b) => a.x - b.x)
+      : [];
+    const rescue = futurePlatforms.find((platform) => platform.kind !== 'ground') || futurePlatforms[0];
+    if (rescue) {
+      // O AUTO sempre reencontra um bloco próximo, evitando um ciclo de queda
+      // quando o navegador perde um frame ou a conexão carrega uma cena.
+      p.x = rescue.x + Math.min(30, rescue.w - 20); p.y = rescue.y - p.h; p.vy = 0; p.vx = 0; p.onGround = true; p.safeX = rescue.x;
+    } else {
+      p.x = Math.max(200, p.safeX - 60); p.y = FLOOR_Y - p.h - 40; p.vy = -250; p.vx = 40;
+    }
     setToast('A névoa devolveu você ao último bloco seguro');
   }
   if (p.x > state.nextCheckpoint) {
     const checkpoint = world.beacons.find(b => !b.lit && p.x > b.x - 100);
     if (checkpoint) { checkpoint.lit = true; state.nextCheckpoint = checkpoint.x; ping(760, .16); setToast('Memória do reino ativada'); }
+  }
+  if (state.auto) {
+    if (p.x > state.autoBestX + 12) {
+      state.autoBestX = p.x;
+      state.autoRescueTimer = 0;
+    } else {
+      state.autoRescueTimer += dt;
+    }
+    if (state.autoRescueTimer > 3.2) {
+      const futurePlatforms = world.platforms
+        .filter((platform) => platform.x > Math.max(state.autoBestX, p.x) + 260)
+        .sort((a, b) => a.x - b.x);
+      const route = futurePlatforms.find((platform) => platform.kind !== 'ground') || futurePlatforms[0];
+      if (route) {
+        p.x = route.x + Math.min(30, route.w - 20); p.y = route.y - p.h; p.vy = 0; p.vx = 0; p.onGround = true; p.safeX = route.x;
+        state.autoBestX = p.x; state.autoRescueTimer = 0;
+        setToast('AUTO encontrou um novo bloco');
+      }
+    }
+  }
+  if (!state.finished && p.x >= WORLD_W - 620) {
+    state.finished = true;
+    ping(980, .28);
+    setToast('A família chegou ao castelo — todas as cores estão vivas');
   }
   for (const star of world.stars) {
     if (!star.taken && Math.abs((p.x + p.w / 2) - star.x) < 44 && Math.abs((p.y + p.h / 2) - star.y) < 90) {

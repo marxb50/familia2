@@ -1,10 +1,10 @@
 # Franklândia — Caminho das Cores
 
-Nova versão jogável criada a partir dos personagens extraídos do vídeo. O jogo usa um canvas 16:9, câmera horizontal suave, corrida automática opcional, modo manual, cinco personagens, 12 memórias e uma sequência de blocos flutuantes com vãos curtos.
+Esta pasta agora usa a edição completa do jogo, restaurada a partir da versão que estava em `teste`. Ela tem oito atos, mundo contínuo, câmera cinematográfica, física com inércia, pulo duplo, pulo na parede, planagem, heavy slam, água e vento, personagens do livro, NPCs, puzzles, estrelas, partículas, narração e tela de vitória.
 
-A travessia acompanha a dinâmica cromática do livro **O Castelo que Nasce do Coração / Franklândia**: começa no castelo sem cores e passa por esperança, Matheus, Pedro, o crescimento da família, Maria Rosa e a celebração final. As oito cenas de fundo foram preservadas em `assets/backgrounds/book/` e entram em transições suaves durante a corrida.
+A jornada acompanha a dinâmica cromática de **O Castelo que Nasce do Coração / Franklândia**: começa no castelo sem cores e evolui até a celebração final. Os cenários e sprites completos estão em `assets/images/`, enquanto os frames separados do vídeo continuam preservados em `assets/characters/` e na pasta irmã `gpt fotos`.
 
-Créditos: personagens extraídos e separados do vídeo `gemini_generated_video_280c85a8.mp4`; cenas e referências visuais baseadas no PDF `livro frank (com creditos).pdf`, fornecido pelo autor do projeto.
+Créditos: personagens extraídos e separados do vídeo `gemini_generated_video_280c85a8.mp4`; cenas, personagens e referências visuais baseadas no PDF `livro frank (com creditos).pdf`, fornecido pelo autor do projeto.
 
 ## Como abrir
 
@@ -20,15 +20,15 @@ Depois abra `http://localhost:8090/`.
 
 - `A/D` ou `←/→`: mover
 - `Espaço`, `W` ou `↑`: pular
-- `C` ou `Tab`: trocar personagem
 - `R`: reiniciar a jornada
+- `J`: pintar pontes com Matheus
+- `K`: cantar para flores com Maria Rosa
+- `C` ou `Tab`: trocar personagem
 - `AUTO ON/OFF`: corrida e câmera automáticas ou controle manual
 
 ## Auditoria aplicada
 
-- O fundo é uma única composição 16:9, escalada para preencher a viewport; não é repetido em ladrilhos.
-- As camadas de névoa, nuvens e partículas se movem separadamente para dar profundidade sem cortar a imagem.
-- Os blocos foram aproximados, com blocos auxiliares e plataformas de segurança para a progressão automática.
-- Os frames dos cinco personagens estão em PNG com transparência, separados por `idle` e `walk`.
-- As oito cenas do livro foram auditadas e associadas a atos de cor para que a jornada revele a história gradualmente.
-- A interface recebeu HUD compacto, vinheta, scanlines discretas, brilho e acabamento de aventura de console portátil/PS2.
+- A versão reduzida foi substituída pelo motor completo de `teste`, mantendo os arquivos extraídos do vídeo.
+- O mundo usa os oito atos e os cenários ilustrados do livro, com transições de cor e câmera com look-ahead.
+- O percurso conserva plataformas, NPCs, desafios e colecionáveis da edição completa.
+- A interface mantém o acabamento contemplativo inspirado em GRIS, portátil e PS2, agora sem sacrificar conteúdo jogável.

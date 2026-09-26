@@ -1,49 +1,148 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#080c19">
-  <title>Franklândia — Caminho das Cores</title>
-  <link rel="stylesheet" href="css/style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0d0c0a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>O Castelo do Coração: Sinfonia das Cores (Edição Gris)</title>
+
+  <!-- Google Fonts: Cinzel & Comfortaa & Cormorant Garamond -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;800;900&family=Comfortaa:wght@300;400;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/gris_style.css?v=1.0">
 </head>
 <body>
-  <main id="game-shell">
-    <canvas id="game" width="1280" height="720" aria-label="Jogo Franklândia Caminho das Cores"></canvas>
 
-    <div class="scanlines" aria-hidden="true"></div>
-    <div class="vignette" aria-hidden="true"></div>
+  <!-- Container de Cinema 16:9 -->
+  <main id="game-container">
+    <!-- Canvas de Renderização em Alta Resolução -->
+    <canvas id="viewport-canvas" width="1920" height="1080"></canvas>
 
-    <header class="hud" aria-live="polite">
-      <div class="hud-brand"><span class="brand-mark">✦</span><span>FRANKLÂNDIA</span><small>CAMINHO DAS CORES</small></div>
-      <div class="hud-center"><span id="chapter-label">RUÍNAS DO CREPÚSCULO</span><span id="progress-label">0%</span></div>
-      <div class="hud-actions">
-        <button id="auto-button" class="hud-button active" type="button">AUTO <b>ON</b></button>
-        <button id="sound-button" class="hud-button" type="button" aria-label="Alternar som">♪</button>
-        <button id="fullscreen-button" class="hud-button" type="button" aria-label="Tela cheia">⛶</button>
+    <!-- Textura de Papel de Aquarela -->
+    <div id="paper-overlay"></div>
+
+    <!-- Vinheta de Cinema -->
+    <div id="vignette-overlay"></div>
+
+    <!-- Letterbox Cinematográfico -->
+    <div class="letterbox-bar letterbox-top"></div>
+    <div class="letterbox-bar letterbox-bottom"></div>
+
+    <!-- Título Poético de Capítulo (Fade-in / Fade-out) -->
+    <section id="chapter-title-screen">
+      <div id="chapter-tag" class="chapter-number-tag">Capítulo I de V</div>
+      <h1 id="chapter-title" class="chapter-title-text">O Castelo Sem Cores</h1>
+      <p id="chapter-subtitle" class="chapter-subtitle-text">Em meio às ruínas do silêncio, a busca pelo amor recomeça.</p>
+    </section>
+
+    <!-- HUD Minimalista & Contemplativo -->
+    <header id="game-hud">
+      <div class="hud-top">
+        <!-- Estrelas de Memória Coletadas -->
+        <div class="hud-stars-container">
+          <svg class="hud-star-icon" viewBox="0 0 24 24" fill="#ffd166">
+            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+          </svg>
+          <span id="hud-stars-count" class="hud-stars-count">0 / 3</span>
+        </div>
+
+        <!-- Prisma das Cores do Amor (Gris Biomes) -->
+        <div class="hud-colors-prism" title="Prisma das Cores do Reino">
+          <div id="prism-blue" class="prism-orb" title="Azul da Imaginação (Príncipe Matheus)"></div>
+          <div id="prism-red" class="prism-orb" title="Vermelho da Coragem (Príncipe Pedro)"></div>
+          <div id="prism-green" class="prism-orb" title="Verde da Harmonia (Princesa Maria Rosa)"></div>
+          <div id="prism-gold" class="prism-orb" title="Dourado da Plenitude (Adoção Plena)"></div>
+        </div>
+
+        <!-- Ações do Canto Superior Direito -->
+        <div class="hud-actions">
+          <button id="btn-toggle-sound" class="hud-btn" title="Ligar / Mutar Som">
+            <span id="sound-icon">🔊</span>
+          </button>
+          <button id="btn-toggle-fullscreen" class="hud-btn" title="Tela Cheia">
+            <span>⛶</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Dica de Personagem / Habilidade no Rodapé do HUD -->
+      <div class="hud-bottom" style="display: flex; justify-content: flex-start;">
+        <div class="hud-ability-hint">
+          <img id="hud-ability-avatar" src="assets/images/characters/king_idle.png" class="hud-ability-avatar" alt="Personagem">
+          <span id="hud-ability-text">Rei & Rainha • Em Busca de Amor e Família</span>
+        </div>
       </div>
     </header>
 
-    <div class="hud-bottom">
-      <div class="role-card"><div id="role-orb" class="role-orb"></div><div><strong id="role-name">Rei</strong><span id="role-tip">C / TAB troca personagem</span></div></div>
-      <div class="collect-card"><span class="star">★</span><strong id="star-count">0</strong><span>/ 12</span></div>
-      <div class="control-card"><span>A/D ou ←/→ mover</span><span>Espaço saltar</span><span>C trocar</span></div>
-    </div>
-
-    <section id="start-screen" class="start-screen">
-      <div class="start-panel">
-        <div class="eyebrow">NOVA JORNADA • EDIÇÃO DE CONSOLE</div>
-        <h1>Franklândia</h1>
-        <h2>Caminho das Cores</h2>
-        <p>Um percurso real por ruínas suspensas, com a família real abrindo caminho até o castelo do crepúsculo.</p>
-        <div class="start-stats"><span><b>12</b> memórias</span><span><b>5</b> heróis</span><span><b>16:9</b> modo cinema</span></div>
-        <button id="start-button" class="start-button" type="button">INICIAR JORNADA <span>▶</span></button>
-        <div class="start-hint">O modo AUTO guia a corrida e a câmera. Desative-o para jogar manualmente.</div>
+    <!-- Controles Touch para Celular / Tablet -->
+    <nav id="mobile-touch-controls">
+      <div class="touch-cluster">
+        <button id="touch-left" class="touch-btn" aria-label="Mover para Esquerda">←</button>
+        <button id="touch-right" class="touch-btn" aria-label="Mover para Direita">→</button>
       </div>
+
+      <div class="touch-cluster">
+        <button id="touch-swap" class="touch-btn" aria-label="Trocar Personagem">🔄</button>
+        <button id="touch-sing" class="touch-btn" aria-label="Cantar / Flor">🌸</button>
+        <button id="touch-action" class="touch-btn touch-btn-action" aria-label="Ação / Pincel / Slam">⚔️</button>
+        <button id="touch-jump" class="touch-btn touch-btn-action" aria-label="Pular / Planar">🕊️</button>
+      </div>
+    </nav>
+
+    <!-- Tela Inicial Contemplativa (Menu do Jogo) -->
+    <section id="start-overlay">
+      <img src="assets/images/characters/children_trio.png" class="start-monument-icon" alt="O Castelo do Coração">
+      <h1 class="start-game-title">O Castelo do Coração</h1>
+      <h2 class="start-game-sub">Sinfonia das Cores • Edição Artística</h2>
+
+      <div class="start-instructions">
+        <p style="margin-bottom: 8px;">
+          Uma jornada contemplativa e poética inspirada na estética de <strong>GRIS</strong> e na história do livro <em>O Castelo que Nasce do Coração</em>.
+        </p>
+        <p style="font-size: 12.5px; opacity: 0.9;">
+          <strong>Controles de Teclado:</strong><br>
+          <kbd>A</kbd> <kbd>D</kbd> ou <kbd>←</kbd> <kbd>→</kbd> Mover com Inércia &nbsp;|&nbsp;
+          <kbd>ESPAÇO</kbd> ou <kbd>W</kbd> Pular (Na parede: aperte de novo para <strong>Pulo na Parede</strong> / Segure no ar para Planar) &nbsp;|&nbsp;
+          <kbd>S</kbd> ou <kbd>↓</kbd> Segurar no solo: Ancorar contra Vento / No ar: Heavy Slam &nbsp;|&nbsp;
+          <kbd>J</kbd> Pintar Pontes (Matheus) &nbsp;|&nbsp;
+          <kbd>K</kbd> Cantar para Flores (Maria Rosa) &nbsp;|&nbsp;
+          <kbd>C</kbd> ou <kbd>TAB</kbd> Trocar Personagem
+        </p>
+      </div>
+
+      <button id="btn-start-game" class="start-btn">INICIAR JORNADA 🕊️</button>
     </section>
 
-    <div id="toast" class="toast" role="status"></div>
+    <!-- Legenda Cinematográfica In-Game (Não interrompe o jogo nem cobre o cenário) -->
+    <div id="cinematic-subtitles-container" class="cinematic-subtitles-bar hidden">
+      <div class="subtitles-content">
+        <div class="subtitles-voice-indicator">
+          <span class="sub-wave"></span>
+          <span class="sub-wave"></span>
+          <span class="sub-wave"></span>
+        </div>
+        <p id="subtitles-text" class="subtitles-text"></p>
+      </div>
+    </div>
   </main>
-  <script src="js/game.js"></script>
+
+  <!-- Scripts Modulares do Jogo -->
+  <script src="js/engine/input.js?v=14.0"></script>
+  <script src="js/engine/camera.js?v=14.0"></script>
+  <script src="js/engine/physics.js?v=14.0"></script>
+  <script src="js/engine/particles.js?v=14.0"></script>
+  <script src="js/engine/audio.js?v=14.0"></script>
+  <script src="js/engine/watercolor_postprocess.js?v=14.0"></script>
+  <script src="js/engine/renderer.js?v=14.0"></script>
+  <script src="js/gameplay/npcs.js?v=14.0"></script>
+  <script src="js/gameplay/puzzles.js?v=14.0"></script>
+  <script src="js/gameplay/character.js?v=14.0"></script>
+  <script src="js/gameplay/world.js?v=14.0"></script>
+  <script src="js/gameplay/levels.js?v=14.0"></script>
+  <script src="js/main.js?v=14.0"></script>
 </body>
 </html>
