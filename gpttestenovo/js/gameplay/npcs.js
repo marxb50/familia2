@@ -98,10 +98,16 @@ class GrisNPC {
     const floatY = Math.sin(this.timer) * 4;
     const drawX = Math.round(this.x);
     const drawY = Math.round(this.y + floatY);
+    // Aumenta somente a arte; área de encontro e posição lógica não mudam.
+    const visualScale = 1.3;
+    const visualW = Math.round(this.width * visualScale);
+    const visualH = Math.round(this.height * visualScale);
+    const visualX = drawX - Math.round((visualW - this.width) / 2);
+    const visualY = drawY - (visualH - this.height);
 
     // Halo sagrado de aquarela suave ao redor do personagem
-    const centerX = drawX + this.width / 2;
-    const centerY = drawY + this.height / 2;
+    const centerX = visualX + visualW / 2;
+    const centerY = visualY + visualH / 2;
     const grad = ctx.createRadialGradient(
       centerX, centerY, 15,
       centerX, centerY, this.width * 0.95
@@ -130,12 +136,12 @@ class GrisNPC {
       if (isGray) {
         ctx.filter = 'grayscale(100%) brightness(0.95) contrast(1.1)';
       }
-      ctx.drawImage(activeImg, drawX, drawY, this.width, this.height);
+      ctx.drawImage(activeImg, visualX, visualY, visualW, visualH);
       ctx.filter = 'none';
     } else {
       // Fallback
       ctx.fillStyle = '#ffd166';
-      ctx.fillRect(drawX, drawY, this.width, this.height);
+      ctx.fillRect(visualX, visualY, visualW, visualH);
     }
 
     // Título poético estilizado sobre a cabeça
@@ -156,14 +162,14 @@ class GrisNPC {
     ctx.strokeStyle = '#1a140e';
     ctx.lineWidth = 3.5;
     ctx.textAlign = 'center';
-    ctx.strokeText(title, centerX, drawY - 14);
-    ctx.fillText(title, centerX, drawY - 14);
+    ctx.strokeText(title, centerX, visualY - 14);
+    ctx.fillText(title, centerX, visualY - 14);
 
     // Indicador sutil de interação quando próximo
     ctx.font = 'italic 12px "Cormorant Garamond", serif';
     ctx.fillStyle = '#ffeaa7';
-    ctx.strokeText('Aproxime-se para encontrar ✨', centerX, drawY - 32);
-    ctx.fillText('Aproxime-se para encontrar ✨', centerX, drawY - 32);
+    ctx.strokeText('Aproxime-se para encontrar ✨', centerX, visualY - 32);
+    ctx.fillText('Aproxime-se para encontrar ✨', centerX, visualY - 32);
 
     ctx.restore();
   }
