@@ -203,7 +203,10 @@ class WatercolorRenderer {
       // Altura próxima à composição original: o rei, a rainha e as crianças
       // continuam proporcionais ao cenário. A largura cresce pela repetição
       // espelhada, nunca por um zoom desproporcional.
-      const tileH = this.height * 0.72;
+      // A pintura desce quase até o rodapé; isso evita que o pulo revele
+      // uma faixa vazia antes do piso, sem fazer o cenário ocupar o tamanho
+      // exagerado da primeira tentativa panorâmica.
+      const tileH = this.height * 0.90;
       const tileW = tileH * (img.naturalWidth / img.naturalHeight);
       const phase = ((camera.x * 0.12) % tileW + tileW) % tileW;
       const start = -phase - tileW;

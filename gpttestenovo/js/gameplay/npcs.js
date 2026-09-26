@@ -99,7 +99,7 @@ class GrisNPC {
     const drawX = Math.round(this.x);
     const drawY = Math.round(this.y + floatY);
     // Aumenta somente a arte; área de encontro e posição lógica não mudam.
-    const visualScale = 1.3;
+    const visualScale = 1.6;
     const visualW = Math.round(this.width * visualScale);
     const visualH = Math.round(this.height * visualScale);
     const visualX = drawX - Math.round((visualW - this.width) / 2);

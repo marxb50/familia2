@@ -312,9 +312,9 @@ class GrisIndividualCharacter {
       spriteW = Math.round(spriteH * (activeImg.naturalWidth / activeImg.naturalHeight));
     }
 
-    // Escala visual solicitada: +30% somente no desenho.
+    // Escala visual: personagens mais legíveis sem mudar a jogabilidade.
     // O collider, a física, a posição dos pés e a jogabilidade permanecem iguais.
-    const visualScale = 1.3;
+    const visualScale = 1.6;
     spriteW = Math.round(spriteW * visualScale);
     spriteH = Math.round(spriteH * visualScale);
     const offsetY = -spriteH;
