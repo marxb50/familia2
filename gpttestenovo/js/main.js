@@ -110,6 +110,7 @@ class GrisGameEngine {
 
     // Paleta de Cores e Trilha Sonora
     this.renderer.setPalette(region.colorKey);
+    this.renderer.setMatheusColorProgress(region.id === 3 ? 0 : 1);
     this.audio.setChapterTheme(region.colorKey);
     this.unlockedColors[region.colorKey] = true;
 
@@ -132,6 +133,7 @@ class GrisGameEngine {
 
       // Transição suave de paleta e música ambiente
       this.renderer.setPalette(region.colorKey);
+      this.renderer.setMatheusColorProgress(region.id === 3 ? 0 : 1);
       this.audio.setChapterTheme(region.colorKey);
       this.unlockedColors[region.colorKey] = true;
 
@@ -245,6 +247,17 @@ class GrisGameEngine {
     setTimeout(() => {
       this.isAwakeningColor = false;
     }, 2000);
+  }
+
+  // Pequena restauração cromática exclusiva dos pincéis do Matheus.
+  onMatheusBrushCollected(colorAmount = 0.18, x, y) {
+    if (this.levels.currentRegionIndex !== 2 || this.character?.mode !== 'matheus') return;
+
+    const nextProgress = this.renderer.matheusColorProgress + colorAmount;
+    this.renderer.setMatheusColorProgress(nextProgress);
+    this.particles.spawnWatercolorBlobs(x, y, '#3a86ff', 14);
+    this.camera.triggerShake(4);
+    this.updateHUD();
   }
 
   // Alternar o líder do casal (Rei e Rainha) ou membro da família no Ato 8

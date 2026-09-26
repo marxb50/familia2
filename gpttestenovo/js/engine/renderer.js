@@ -55,6 +55,9 @@ class WatercolorRenderer {
     };
 
     this.currentPaletteKey = 'gray';
+    // Progresso cromático exclusivo do Ato III de Matheus. Começa totalmente
+    // dessaturado e recebe pequenas doses de cor a cada pincel coletado.
+    this.matheusColorProgress = 1;
 
     // Carregar Ilustrações de Fundo do Livro Franklândia
     this.bgImages = {};
@@ -80,6 +83,24 @@ class WatercolorRenderer {
     if (this.palettes[key]) {
       this.currentPaletteKey = key;
     }
+  }
+
+  setMatheusColorProgress(progress) {
+    this.matheusColorProgress = Math.max(0, Math.min(1, progress));
+  }
+
+  getMatheusImageFilter(ambient = false) {
+    const isMatheusAct = this.currentPaletteKey === 'blue';
+    if (!isMatheusAct) {
+      return ambient ? 'blur(24px) saturate(0.82)' : 'none';
+    }
+
+    // Cada pincel remove só parte do preto e branco: a pintura ainda domina
+    // o quadro até o jogador avançar na fase.
+    const grayscale = Math.round(Math.max(0, 1 - this.matheusColorProgress * 0.62) * 100);
+    const saturation = (0.42 + this.matheusColorProgress * 0.58).toFixed(2);
+    const colorFilter = `grayscale(${grayscale}%) saturate(${saturation})`;
+    return ambient ? `blur(24px) ${colorFilter}` : colorFilter;
   }
 
   initDistantMonuments() {
@@ -191,7 +212,7 @@ class WatercolorRenderer {
 
       ctx.save();
       ctx.globalAlpha = 0.22 * alpha;
-      ctx.filter = 'blur(24px) saturate(0.82)';
+      ctx.filter = this.getMatheusImageFilter(true);
       ctx.drawImage(img, (this.width - w) * 0.5, 0, w, h);
       ctx.filter = 'none';
       ctx.restore();
@@ -215,6 +236,7 @@ class WatercolorRenderer {
 
       ctx.save();
       ctx.globalAlpha = 0.96 * alpha;
+      ctx.filter = this.getMatheusImageFilter(false);
       for (let i = -1; i <= 3; i++) {
         const x = start + i * tileW;
         const mirror = ((tileIndex + i) & 1) !== 0;

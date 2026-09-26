@@ -223,8 +223,6 @@ class LevelDesignManager {
       { x: 3600, y: 1700, id: 'star1_2' },
       { x: 8625, y: 1710, id: 'star2_1' },
       { x: 10500, y: 1690, id: 'star2_2' },
-      { x: 15375, y: 1680, id: 'star3_1' },
-      { x: 17250, y: 1660, id: 'star3_2' },
       { x: 22125, y: 1720, id: 'star4_1' },
       { x: 24000, y: 1690, id: 'star4_2' },
       { x: 28950, y: 1700, id: 'star5_1' },
@@ -239,8 +237,13 @@ class LevelDesignManager {
     ];
     stars.forEach(s => puzzleMgr.addMemoryStar(s.x, s.y, s.id));
 
-    // Bolha d'Água no Ateliê (Ato 3)
-    puzzleMgr.addWaterVolume(15300, 1560, 320, 320);
+    // Tinta azul e pincéis mágicos do Matheus (Ato 3).
+    // Os antigos pontos brilhantes desta região foram substituídos por estes
+    // dois itens; cada coleta revela apenas uma pequena parte das cores.
+    puzzleMgr.addPaintPool(15285, 1560, 360, 320, 'paint3_1');
+    puzzleMgr.addPaintPool(17145, 1540, 360, 320, 'paint3_2');
+    puzzleMgr.addPaintBrush(15375, 1680, 'brush3_1', 0.18);
+    puzzleMgr.addPaintBrush(17250, 1660, 'brush3_2', 0.18);
 
     // Flores que Desabrocham (Ato 7 e 8)
     puzzleMgr.addBloomingFlower(42450, 1720, 180, 'fl7_1');

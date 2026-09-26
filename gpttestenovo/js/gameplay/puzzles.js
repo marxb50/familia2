@@ -7,6 +7,7 @@
 class InteractivePuzzleManager {
   constructor() {
     this.memoryStars = [];
+    this.paintBrushes = [];       // Colecionáveis exclusivos do Ato III de Matheus
     this.followingStars = [];      // Estrelas que orbitam o jogador como constelação viva
     this.crackedFloors = [];
     this.temporaryBridges = [];
@@ -30,11 +31,16 @@ class InteractivePuzzleManager {
     this.windForce = -380;
 
     this.collectedStarsCount = 0;
+    this.paintBrushesCollected = 0;
     this.totalStarsInLevel = 0;
+
+    this.paintBrushImage = new Image();
+    this.paintBrushImage.src = 'assets/images/ui/item_brush_blue.png?v=16.0';
   }
 
   reset() {
     this.memoryStars = [];
+    this.paintBrushes = [];
     this.followingStars = [];
     this.crackedFloors = [];
     this.temporaryBridges = [];
@@ -52,6 +58,8 @@ class InteractivePuzzleManager {
     this.isWindBlowing = false;
     this.windCycleTimer = 0;
     this.collectedStarsCount = 0;
+    this.paintBrushesCollected = 0;
+    this.totalStarsInLevel = 0;
   }
 
   // 1. Estrela de Memória Cósmica (vira estrela seguidora ao coletar)
@@ -64,6 +72,22 @@ class InteractivePuzzleManager {
       collected: false,
       pulseTimer: Math.random() * 5
     });
+    this.totalStarsInLevel++;
+  }
+
+  // Pincéis mágicos: substituem as estrelas brilhantes apenas no Ato III.
+  addPaintBrush(x, y, id, colorAmount = 0.18) {
+    this.paintBrushes.push({
+      id: id || Math.random(),
+      x, y,
+      baseY: y,
+      radius: 26,
+      collected: false,
+      pulseTimer: Math.random() * 5,
+      colorAmount
+    });
+    // Continua sendo um item coletável para o contador do HUD, sem virar
+    // uma estrela seguidora nem criar degraus de constelação.
     this.totalStarsInLevel++;
   }
 
@@ -117,8 +141,13 @@ class InteractivePuzzleManager {
   }
 
   // 6. Canal de Água Suspensa no Ar (Azul / Gris)
-  addWaterVolume(x, y, width, height) {
-    this.waterVolumes.push({ x, y, width, height, wavePhase: 0 });
+  addWaterVolume(x, y, width, height, kind = 'water') {
+    this.waterVolumes.push({ x, y, width, height, wavePhase: 0, kind });
+  }
+
+  // Poças de tinta azul que guardam os pincéis do Ato III.
+  addPaintPool(x, y, width, height, id) {
+    this.waterVolumes.push({ x, y, width, height, wavePhase: 0, kind: 'paint', id });
   }
 
   // 7. Portal de Espelho com Inversão de Gravidade (Dourado / Gris)
@@ -259,6 +288,26 @@ class InteractivePuzzleManager {
           maxLife: 9999,
           alpha: 0.95
         });
+      }
+    }
+
+    // Pincéis mágicos do Matheus: esta interação só existe enquanto o
+    // protagonista ativo é Matheus, portanto os demais atos não são afetados.
+    if (character.mode === 'matheus') {
+      for (const brush of this.paintBrushes) {
+        if (brush.collected) continue;
+        brush.pulseTimer += dt * 3;
+        brush.y = brush.baseY + Math.sin(brush.pulseTimer) * 8;
+
+        const dist = Math.hypot(charCenterX - brush.x, charCenterY - brush.y);
+        if (dist < brush.radius + 35) {
+          brush.collected = true;
+          this.collectedStarsCount++;
+          this.paintBrushesCollected++;
+          particles.spawnWatercolorBlobs(brush.x, brush.y, '#3a86ff', 22);
+          audio.playMemoryStarSound(1.15 + (this.paintBrushesCollected * 0.12));
+          window.gameEngine?.onMatheusBrushCollected?.(brush.colorAmount, brush.x, brush.y);
+        }
       }
     }
 
@@ -434,16 +483,17 @@ class InteractivePuzzleManager {
     // 0. Desenhar Canais de Água / Luz Suspensa no Ar (Azul)
     for (const w of this.waterVolumes) {
       ctx.save();
-      ctx.fillStyle = 'rgba(72, 202, 228, 0.22)';
-      ctx.strokeStyle = 'rgba(144, 224, 239, 0.75)';
+      const isPaint = w.kind === 'paint';
+      ctx.fillStyle = isPaint ? 'rgba(58, 134, 255, 0.28)' : 'rgba(72, 202, 228, 0.22)';
+      ctx.strokeStyle = isPaint ? 'rgba(128, 191, 255, 0.92)' : 'rgba(144, 224, 239, 0.75)';
       ctx.lineWidth = 2.5;
       ctx.beginPath();
       ctx.roundRect(w.x, w.y, w.width, w.height, 16);
       ctx.fill();
       ctx.stroke();
 
-      // Ondas causticas de luz no topo da agua
-      ctx.strokeStyle = '#ffffff';
+      // Ondas causticas de luz no topo da água / pinceladas na tinta azul
+      ctx.strokeStyle = isPaint ? 'rgba(224, 241, 255, 0.95)' : '#ffffff';
       ctx.lineWidth = 1.5;
       ctx.beginPath();
       for (let x = w.x; x < w.x + w.width; x += 30) {
@@ -452,6 +502,17 @@ class InteractivePuzzleManager {
         else ctx.lineTo(x, wy);
       }
       ctx.stroke();
+
+      if (isPaint) {
+        ctx.fillStyle = 'rgba(157, 207, 255, 0.82)';
+        for (let i = 0; i < 5; i++) {
+          const dabX = w.x + 28 + i * ((w.width - 56) / 4);
+          const dabY = w.y + 42 + Math.sin(time * 2 + i * 1.7) * 7;
+          ctx.beginPath();
+          ctx.ellipse(dabX, dabY, 9, 4, -0.2 + i * 0.08, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
       ctx.restore();
     }
 
@@ -565,6 +626,44 @@ class InteractivePuzzleManager {
       ctx.closePath();
       ctx.fill();
 
+      ctx.restore();
+    }
+
+    // Pincéis flutuantes sobre as poças azuis: não usam o diamante branco das
+    // estrelas e permanecem coloridos mesmo quando o cenário está sem cor.
+    for (const brush of this.paintBrushes) {
+      if (brush.collected) continue;
+      ctx.save();
+      ctx.translate(brush.x, brush.y);
+
+      const halo = 30 + Math.sin(brush.pulseTimer * 1.5) * 7;
+      const grad = ctx.createRadialGradient(0, 0, 5, 0, 0, halo);
+      grad.addColorStop(0, 'rgba(92, 166, 255, 0.72)');
+      grad.addColorStop(0.65, 'rgba(58, 134, 255, 0.24)');
+      grad.addColorStop(1, 'rgba(58, 134, 255, 0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(0, 0, halo, 0, Math.PI * 2);
+      ctx.fill();
+
+      if (this.paintBrushImage.complete && this.paintBrushImage.naturalWidth > 0) {
+        ctx.rotate(Math.sin(brush.pulseTimer * 0.7) * 0.08 - 0.18);
+        ctx.drawImage(this.paintBrushImage, -45, -45, 90, 90);
+      } else {
+        // Fallback vetorial caso a imagem ainda esteja carregando.
+        ctx.rotate(-0.18);
+        ctx.strokeStyle = '#8b5e34';
+        ctx.lineWidth = 8;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(-22, 22);
+        ctx.lineTo(17, -17);
+        ctx.stroke();
+        ctx.fillStyle = '#3a86ff';
+        ctx.beginPath();
+        ctx.ellipse(21, -20, 13, 7, -0.7, 0, Math.PI * 2);
+        ctx.fill();
+      }
       ctx.restore();
     }
 
