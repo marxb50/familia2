@@ -55,23 +55,28 @@ class Character {
 
   loadSprites() {
     const prefix = this.type;
-    let spriteNames = ['idle', 'walk1', 'walk2', 'walk3', 'walk4', 'jump'];
+    let spriteNames = ['idle', 'walk1', 'walk2', 'walk3', 'walk4', 'walk5', 'walk6', 'walk7', 'walk8', 'jump'];
 
     if (prefix === 'pedro_horse') {
       spriteNames = ['idle', 'gallop1', 'gallop2', 'gallop3', 'gallop4', 'jump'];
     } else if (prefix === 'maria_rosa') {
-      spriteNames = ['ball_idle', 'dance1', 'dance2', 'dance3', 'dance4', 'walk1', 'walk2', 'walk3', 'walk4', 'jump', 'idle'];
+      spriteNames = [
+        'ball_idle',
+        'dance1', 'dance2', 'dance3', 'dance4', 'dance5', 'dance6', 'dance7', 'dance8',
+        'walk1', 'walk2', 'walk3', 'walk4', 'walk5', 'walk6', 'walk7', 'walk8',
+        'jump', 'idle'
+      ];
     }
 
     spriteNames.forEach(name => {
       // Color sprites
       const imgColor = new Image();
-      imgColor.src = `assets/images/characters/${prefix}_${name}.png?v=7.0`;
+      imgColor.src = `assets/images/characters/${prefix}_${name}.png?v=8.0`;
       this.spritesColor[name] = imgColor;
 
       // Dedicated B&W sprites
       const imgBW = new Image();
-      imgBW.src = `assets/images/characters/${prefix}_${name}_bw.png?v=7.0`;
+      imgBW.src = `assets/images/characters/${prefix}_${name}_bw.png?v=8.0`;
       this.spritesBW[name] = imgBW;
     });
 
@@ -115,10 +120,11 @@ class Character {
     } else if (Math.abs(this.vx) > 0.25) {
       this.state = 'walk';
       this.animTimer++;
-      const frameSpeed = this.type === 'pedro_horse' ? 4 : 5;
+      const maxFrames = this.type === 'pedro_horse' ? 4 : 8;
+      const frameSpeed = this.type === 'pedro_horse' ? 4 : 4;
       if (this.animTimer >= frameSpeed) {
         this.animTimer = 0;
-        this.walkFrame = (this.walkFrame % 4) + 1;
+        this.walkFrame = (this.walkFrame % maxFrames) + 1;
       }
     } else {
       this.state = 'idle';
@@ -189,7 +195,7 @@ class Character {
       if (this.state === 'jump') {
         currentSprite = spriteDict.jump || spriteDict.ball_idle || spriteDict.idle;
       } else if (this.state === 'walk') {
-        currentSprite = spriteDict[`dance${this.walkFrame}`] || spriteDict[`walk${this.walkFrame}`] || spriteDict.ball_idle;
+        currentSprite = spriteDict[`walk${this.walkFrame}`] || spriteDict[`dance${this.walkFrame}`] || spriteDict.ball_idle || spriteDict.idle;
       } else {
         currentSprite = spriteDict.ball_idle || spriteDict.idle;
       }

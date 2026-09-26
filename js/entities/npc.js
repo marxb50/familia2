@@ -19,48 +19,72 @@ class NPC {
 
     if (this.type.startsWith('matheus')) {
       framePaths = [
-        'assets/images/characters/matheus_walk1.png?v=7.0',
-        'assets/images/characters/matheus_walk2.png?v=7.0',
-        'assets/images/characters/matheus_walk3.png?v=7.0',
-        'assets/images/characters/matheus_walk4.png?v=7.0'
+        'assets/images/characters/matheus_walk1.png?v=8.0',
+        'assets/images/characters/matheus_walk2.png?v=8.0',
+        'assets/images/characters/matheus_walk3.png?v=8.0',
+        'assets/images/characters/matheus_walk4.png?v=8.0',
+        'assets/images/characters/matheus_walk5.png?v=8.0',
+        'assets/images/characters/matheus_walk6.png?v=8.0',
+        'assets/images/characters/matheus_walk7.png?v=8.0',
+        'assets/images/characters/matheus_walk8.png?v=8.0'
       ];
     } else if (this.type === 'pedro_stand') {
       framePaths = [
-        'assets/images/characters/pedro_walk1.png?v=7.0',
-        'assets/images/characters/pedro_walk2.png?v=7.0',
-        'assets/images/characters/pedro_walk3.png?v=7.0',
-        'assets/images/characters/pedro_walk4.png?v=7.0'
+        'assets/images/characters/pedro_walk1.png?v=8.0',
+        'assets/images/characters/pedro_walk2.png?v=8.0',
+        'assets/images/characters/pedro_walk3.png?v=8.0',
+        'assets/images/characters/pedro_walk4.png?v=8.0',
+        'assets/images/characters/pedro_walk5.png?v=8.0',
+        'assets/images/characters/pedro_walk6.png?v=8.0',
+        'assets/images/characters/pedro_walk7.png?v=8.0',
+        'assets/images/characters/pedro_walk8.png?v=8.0'
       ];
     } else if (this.type === 'pedro' || this.type === 'pedro_horse') {
       framePaths = [
-        'assets/images/characters/pedro_horse_gallop1.png?v=7.0',
-        'assets/images/characters/pedro_horse_gallop2.png?v=7.0',
-        'assets/images/characters/pedro_horse_gallop3.png?v=7.0',
-        'assets/images/characters/pedro_horse_gallop4.png?v=7.0'
+        'assets/images/characters/pedro_horse_gallop1.png?v=8.0',
+        'assets/images/characters/pedro_horse_gallop2.png?v=8.0',
+        'assets/images/characters/pedro_horse_gallop3.png?v=8.0',
+        'assets/images/characters/pedro_horse_gallop4.png?v=8.0'
       ];
     } else if (this.type.startsWith('maria_rosa')) {
       framePaths = [
-        'assets/images/characters/maria_rosa_walk1.png?v=7.0',
-        'assets/images/characters/maria_rosa_walk2.png?v=7.0',
-        'assets/images/characters/maria_rosa_walk3.png?v=7.0',
-        'assets/images/characters/maria_rosa_walk4.png?v=7.0'
+        'assets/images/characters/maria_rosa_walk1.png?v=8.0',
+        'assets/images/characters/maria_rosa_walk2.png?v=8.0',
+        'assets/images/characters/maria_rosa_walk3.png?v=8.0',
+        'assets/images/characters/maria_rosa_walk4.png?v=8.0',
+        'assets/images/characters/maria_rosa_walk5.png?v=8.0',
+        'assets/images/characters/maria_rosa_walk6.png?v=8.0',
+        'assets/images/characters/maria_rosa_walk7.png?v=8.0',
+        'assets/images/characters/maria_rosa_walk8.png?v=8.0'
       ];
     } else if (this.type === 'mago') {
-      const p1 = this.isBW ? 'assets/images/characters/mago_magic_bw.png?v=7.0' : 'assets/images/characters/mago_magic.png?v=7.0';
-      const p2 = this.isBW ? 'assets/images/characters/mago_magic_bw.png?v=7.0' : 'assets/images/characters/mago_idle.png?v=7.0';
+      const p1 = this.isBW ? 'assets/images/characters/mago_magic_bw.png?v=8.0' : 'assets/images/characters/mago_magic.png?v=8.0';
+      const p2 = this.isBW ? 'assets/images/characters/mago_magic_bw.png?v=8.0' : 'assets/images/characters/mago_idle.png?v=8.0';
       framePaths = [p1, p2];
     } else if (this.type === 'king_stand') {
       framePaths = [
-        'assets/images/characters/king_idle.png?v=7.0',
-        'assets/images/characters/king_walk1.png?v=7.0'
+        'assets/images/characters/king_walk1.png?v=8.0',
+        'assets/images/characters/king_walk2.png?v=8.0',
+        'assets/images/characters/king_walk3.png?v=8.0',
+        'assets/images/characters/king_walk4.png?v=8.0',
+        'assets/images/characters/king_walk5.png?v=8.0',
+        'assets/images/characters/king_walk6.png?v=8.0',
+        'assets/images/characters/king_walk7.png?v=8.0',
+        'assets/images/characters/king_walk8.png?v=8.0'
       ];
     } else if (this.type === 'queen_stand') {
       framePaths = [
-        'assets/images/characters/queen_idle.png?v=7.0',
-        'assets/images/characters/queen_walk1.png?v=7.0'
+        'assets/images/characters/queen_walk1.png?v=8.0',
+        'assets/images/characters/queen_walk2.png?v=8.0',
+        'assets/images/characters/queen_walk3.png?v=8.0',
+        'assets/images/characters/queen_walk4.png?v=8.0',
+        'assets/images/characters/queen_walk5.png?v=8.0',
+        'assets/images/characters/queen_walk6.png?v=8.0',
+        'assets/images/characters/queen_walk7.png?v=8.0',
+        'assets/images/characters/queen_walk8.png?v=8.0'
       ];
     } else {
-      framePaths = ['assets/images/characters/children_trio.png?v=7.0'];
+      framePaths = ['assets/images/characters/children_trio.png?v=8.0'];
     }
 
     this.frames = framePaths.map(p => {

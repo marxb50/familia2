@@ -9,9 +9,15 @@ Jogo interativo 2D de plataforma e narrativa infantil, inspirado no conto de fad
 ## 🎮 Como Jogar
 
 O jogo está disponível diretamente no navegador com suporte multiplataforma:
-- **🌐 Portal Oficial & Seletor de Fases**: `https://marxb50.github.io/familia/`
-- **📱 Edição Celular (Touch)**: `https://marxb50.github.io/familia/celular/`
-- **💻 Edição Computador (Teclado)**: `https://marxb50.github.io/familia/PC/`
+- **🌐 Portal Oficial & Seletor de Fases**: `https://marxb50.github.io/familia2/`
+- **📱 Edição Celular (Touch)**: `https://marxb50.github.io/familia2/celular/`
+- **💻 Edição Computador (Teclado)**: `https://marxb50.github.io/familia2/PC/`
+- **✨ Novo modo artístico**: `https://marxb50.github.io/familia2/gpttestenovo/`
+
+### 🌈 Franklândia — Caminho das Cores (`gpttestenovo/`)
+Uma jornada paralela criada com os personagens separados do vídeo enviado. A câmera 16:9, os blocos flutuantes próximos e o modo AUTO recebem acabamento inspirado em PS Vita/PS2. O fundo muda por atos conforme a dinâmica cromática do livro: castelo sem cores, esperança, Matheus, Pedro, crescimento da família, Maria Rosa e a celebração final.
+
+Créditos: livro **O Castelo que Nasce do Coração / Franklândia**, PDF fornecido no projeto; personagens separados do vídeo `gemini_generated_video_280c85a8.mp4`.
 
 ---
 
@@ -61,11 +67,11 @@ Inspirada na arquitetura e ergonomia de [`marxb50/jogo-cajulim`](https://marxb50
 ---
 
 ## 🚀 Publicação no GitHub Pages
-1. Crie o repositório `familia` no seu GitHub: `https://github.com/marxb50/familia`
+1. O repositório desta versão é `familia2`: `https://github.com/marxb50/familia2`
 2. Envie os arquivos da branch `main`:
    ```bash
    git push -u origin main
    ```
 3. No GitHub, acesse **Settings > Pages** e selecione o branch `main` (pasta `/ (root)`).
 4. O jogo estará disponível globalmente em:
-   **`https://marxb50.github.io/familia`**
+   **`https://marxb50.github.io/familia2`**

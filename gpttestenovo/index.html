@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#080c19">
+  <title>Franklândia — Caminho das Cores</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <main id="game-shell">
+    <canvas id="game" width="1280" height="720" aria-label="Jogo Franklândia Caminho das Cores"></canvas>
+
+    <div class="scanlines" aria-hidden="true"></div>
+    <div class="vignette" aria-hidden="true"></div>
+
+    <header class="hud" aria-live="polite">
+      <div class="hud-brand"><span class="brand-mark">✦</span><span>FRANKLÂNDIA</span><small>CAMINHO DAS CORES</small></div>
+      <div class="hud-center"><span id="chapter-label">RUÍNAS DO CREPÚSCULO</span><span id="progress-label">0%</span></div>
+      <div class="hud-actions">
+        <button id="auto-button" class="hud-button active" type="button">AUTO <b>ON</b></button>
+        <button id="sound-button" class="hud-button" type="button" aria-label="Alternar som">♪</button>
+        <button id="fullscreen-button" class="hud-button" type="button" aria-label="Tela cheia">⛶</button>
+      </div>
+    </header>
+
+    <div class="hud-bottom">
+      <div class="role-card"><div id="role-orb" class="role-orb"></div><div><strong id="role-name">Rei</strong><span id="role-tip">C / TAB troca personagem</span></div></div>
+      <div class="collect-card"><span class="star">★</span><strong id="star-count">0</strong><span>/ 12</span></div>
+      <div class="control-card"><span>A/D ou ←/→ mover</span><span>Espaço saltar</span><span>C trocar</span></div>
+    </div>
+
+    <section id="start-screen" class="start-screen">
+      <div class="start-panel">
+        <div class="eyebrow">NOVA JORNADA • EDIÇÃO DE CONSOLE</div>
+        <h1>Franklândia</h1>
+        <h2>Caminho das Cores</h2>
+        <p>Um percurso real por ruínas suspensas, com a família real abrindo caminho até o castelo do crepúsculo.</p>
+        <div class="start-stats"><span><b>12</b> memórias</span><span><b>5</b> heróis</span><span><b>16:9</b> modo cinema</span></div>
+        <button id="start-button" class="start-button" type="button">INICIAR JORNADA <span>▶</span></button>
+        <div class="start-hint">O modo AUTO guia a corrida e a câmera. Desative-o para jogar manualmente.</div>
+      </div>
+    </section>
+
+    <div id="toast" class="toast" role="status"></div>
+  </main>
+  <script src="js/game.js"></script>
+</body>
+</html>
