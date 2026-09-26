@@ -109,7 +109,7 @@ class GrisIndividualCharacter {
       const frames = [];
       for (let i = 0; i < count; i++) {
         const pad = i < 10 ? '0' + i : '' + i;
-        frames.push(load(`${baseDir}/${prefix}_${pad}${suffix}.png?v=14.0`));
+        frames.push(load(`${baseDir}/${prefix}_${pad}${suffix}.png?v=20.0`));
       }
       return frames;
     };
@@ -141,23 +141,32 @@ class GrisIndividualCharacter {
     } else {
       // Todos os 5 personagens principais: king, queen, matheus, pedro, maria_rosa
       this.sprites.color.walks = loadSeq(`assets/images/characters/${t}/walk`, 'walk', 8);
-      this.sprites.color.runs  = loadSeq(`assets/images/characters/${t}/run`,  'run',  8);
-      this.sprites.color.idle  = load(`assets/images/characters/${t}/idle.png?v=14.0`);
-      this.sprites.color.jump  = load(`assets/images/characters/${t}/jump/jump_apex.png?v=14.0`);
+      // Os PNGs de corrida do Rei têm a capa cortada na borda e os do Pedro
+      // carregam uma faixa da capa do pai. A caminhada é usada em alta
+      // velocidade para preservar o ciclo de passos sem os artefatos.
+      const safeRunFrames = t === 'king' || t === 'pedro'
+        ? this.sprites.color.walks
+        : loadSeq(`assets/images/characters/${t}/run`, 'run', 8);
+      this.sprites.color.runs  = safeRunFrames;
+      this.sprites.color.idle  = load(`assets/images/characters/${t}/idle.png?v=20.0`);
+      this.sprites.color.jump  = load(`assets/images/characters/${t}/jump/jump_apex.png?v=20.0`);
       this.sprites.color.jumps = {
-        rise: load(`assets/images/characters/${t}/jump/jump_rise.png?v=14.0`),
-        apex: load(`assets/images/characters/${t}/jump/jump_apex.png?v=14.0`),
-        fall: load(`assets/images/characters/${t}/jump/jump_fall.png?v=14.0`)
+        rise: load(`assets/images/characters/${t}/jump/jump_rise.png?v=20.0`),
+        apex: load(`assets/images/characters/${t}/jump/jump_apex.png?v=20.0`),
+        fall: load(`assets/images/characters/${t}/jump/jump_fall.png?v=20.0`)
       };
 
       this.sprites.bw.walks = loadSeq(`assets/images/characters/${t}/walk`, 'walk', 8, '_bw');
-      this.sprites.bw.runs  = loadSeq(`assets/images/characters/${t}/run`,  'run',  8, '_bw');
-      this.sprites.bw.idle  = load(`assets/images/characters/${t}/idle_bw.png?v=14.0`);
-      this.sprites.bw.jump  = load(`assets/images/characters/${t}/jump/jump_apex_bw.png?v=14.0`);
+      const safeRunFramesBW = t === 'king' || t === 'pedro'
+        ? this.sprites.bw.walks
+        : loadSeq(`assets/images/characters/${t}/run`, 'run', 8, '_bw');
+      this.sprites.bw.runs  = safeRunFramesBW;
+      this.sprites.bw.idle  = load(`assets/images/characters/${t}/idle_bw.png?v=20.0`);
+      this.sprites.bw.jump  = load(`assets/images/characters/${t}/jump/jump_apex_bw.png?v=20.0`);
       this.sprites.bw.jumps = {
-        rise: load(`assets/images/characters/${t}/jump/jump_rise_bw.png?v=14.0`),
-        apex: load(`assets/images/characters/${t}/jump/jump_apex_bw.png?v=14.0`),
-        fall: load(`assets/images/characters/${t}/jump/jump_fall_bw.png?v=14.0`)
+        rise: load(`assets/images/characters/${t}/jump/jump_rise_bw.png?v=20.0`),
+        apex: load(`assets/images/characters/${t}/jump/jump_apex_bw.png?v=20.0`),
+        fall: load(`assets/images/characters/${t}/jump/jump_fall_bw.png?v=20.0`)
       };
     }
   }
@@ -527,7 +536,7 @@ class GrisCharacter {
         : this.familyParty.filter((member) => member !== leader);
 
       followers.forEach((comp, followerIndex) => {
-        const gap = this.mode === 'family_swap' ? 76 : 68;
+        const gap = this.mode === 'family_swap' ? 112 : 68;
         const targetOffset = leader.facing === 1
           ? -(gap * (followerIndex + 1))
           : gap * (followerIndex + 1);
