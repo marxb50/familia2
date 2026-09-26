@@ -32,6 +32,7 @@ class GrisGameEngine {
     // Estado da Narrativa
     this.isCutsceneActive = false;
     this.isAwakeningColor = false;
+    this.finalSequenceStarted = false;
 
     // Cores Virtuosas Desbloqueadas (Livro Página 37)
     this.unlockedColors = {
@@ -233,10 +234,34 @@ class GrisGameEngine {
     this.audio.playMemoryStarSound(1.5);
     this.camera.triggerShake(10);
 
-    // Se for o encontro final no Ato 8, tocar narração de vitória
-    if (this.levels.currentRegionIndex === 7 && this.character.x > 51750) {
-      this.audio.playNarration('assets/audio/victory_narration.mp3');
+  }
+
+  startFinalSequence() {
+    if (this.finalSequenceStarted) return;
+    this.finalSequenceStarted = true;
+
+    // Congelar somente quando a família já chegou junta ao altar.
+    this.character.vx = 0;
+    this.character.vy = 0;
+    this.character.isJumping = false;
+    if (this.character.familyParty) {
+      for (const member of this.character.familyParty) {
+        member.vx = 0;
+        member.vy = 0;
+        member.isJumping = false;
+      }
     }
+
+    document.getElementById('ending-screen')?.classList.add('visible');
+
+    const colors = ['#3a86ff', '#e63946', '#2a9d8f', '#ff70a6', '#ffd166'];
+    colors.forEach((color, index) => {
+      this.particles.spawnWatercolorBlobs(53500 + index * 70, 1530 - index * 18, color, 22);
+      this.particles.spawnPetals(53500 + index * 70, 1500 - index * 18, 10, color);
+    });
+    this.renderer.triggerColorBloom(53550, 1480, '#ffd166');
+    this.camera.triggerShake(12);
+    this.audio.playNarration('assets/audio/victory_narration.mp3');
   }
 
   // Despertar de Cor (Beacons Mágicos - Sem Corte! O jogador continua andando)
@@ -307,7 +332,10 @@ class GrisGameEngine {
     const avatarEl = document.getElementById('hud-ability-avatar');
 
     if (hintEl && avatarEl) {
-      if (charType === 'carriage') {
+      if (this.character.mode === 'family_swap') {
+        hintEl.textContent = 'A família inteira corre junta • O amor chegou ao altar final';
+        avatarEl.src = 'assets/images/characters/children_trio.png';
+      } else if (charType === 'carriage') {
         hintEl.textContent = 'Rei & Rainha na Carruagem Real • Rumo ao Vilarejo para Acolher Matheus Bebê!';
         avatarEl.src = 'assets/images/characters/royal_carriage.png';
       } else if (this.character.mode === 'couple') {
@@ -427,6 +455,22 @@ class GrisGameEngine {
 
     // 6. Verificar Progressão Contínua de Região (Estilo Metroid)
     this.checkRegionProgression();
+
+    // Final do Ato VIII: encontro da família no altar supremo.
+    if (this.levels.currentRegionIndex === 7 && this.character.x > 52650) {
+      this.startFinalSequence();
+    }
+
+    if (this.finalSequenceStarted) {
+      this.character.vx = 0;
+      this.character.vy = 0;
+      if (this.character.familyParty) {
+        for (const member of this.character.familyParty) {
+          member.vx = 0;
+          member.vy = 0;
+        }
+      }
+    }
 
     // 7. Atualizar Sistema Global de Partículas
     this.particles.update(dt);

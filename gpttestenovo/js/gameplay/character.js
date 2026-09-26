@@ -353,6 +353,7 @@ class GrisCharacter {
     this.leaderType = 'king';
     this.familyList = ['matheus', 'pedro', 'maria_rosa', 'king', 'queen'];
     this.familyIdx = 0;
+    this.familyParty = [];
 
     this.king = new GrisIndividualCharacter('king', startX, startY);
     this.queen = new GrisIndividualCharacter('queen', startX - 70, startY);
@@ -381,8 +382,20 @@ class GrisCharacter {
       this.queen.facing = 1;
       this.singleChar = null;
     } else if (mode === 'family_swap') {
-      this.singleChar = new GrisIndividualCharacter(this.familyList[this.familyIdx], startX, startY);
+      // No ato final a família inteira atravessa o pátio junta. Matheus lidera
+      // e os demais correm em formação atrás dele, sem virar personagens
+      // separados nem exigir troca manual para acompanhar a cena.
+      this.familyIdx = 0;
+      this.familyParty = this.familyList.map((type, index) => {
+        const member = new GrisIndividualCharacter(type, startX - index * 76, startY);
+        member.facing = 1;
+        member.vx = 0;
+        member.vy = 0;
+        return member;
+      });
+      this.singleChar = this.familyParty[0];
     } else {
+      this.familyParty = [];
       this.singleChar = new GrisIndividualCharacter(mode, startX, startY);
     }
   }
@@ -473,23 +486,8 @@ class GrisCharacter {
       window.gameEngine?.audio?.playMemoryStarSound(1.3);
       return true;
     } else if (this.mode === 'family_swap') {
-      this.familyIdx = (this.familyIdx + 1) % this.familyList.length;
-      const curX = this.active.x;
-      const curY = this.active.y;
-      const curVx = this.active.vx;
-      const curVy = this.active.vy;
-
-      this.singleChar = new GrisIndividualCharacter(this.familyList[this.familyIdx], curX, curY);
-      this.singleChar.vx = curVx;
-      this.singleChar.vy = curVy;
-
-      window.gameEngine?.particles?.spawnWatercolorBlobs(
-        curX + 30, curY + 50,
-        this.singleChar.getThemeColor(),
-        16
-      );
-      window.gameEngine?.audio?.playMemoryStarSound(1.4);
-      return true;
+      // O encerramento é uma corrida coletiva: C não desmonta a formação.
+      return false;
     }
     return false;
   }
@@ -520,85 +518,83 @@ class GrisCharacter {
     // 1. Atualizar Líder
     this.active.update(dt, particles, audio);
 
-    // 2. Atualizar Companheiro no Modo Casal (Rei & Rainha)
-    if (this.mode === 'couple') {
+    // 2. Atualizar acompanhantes: casal nos atos iniciais ou a família
+    // inteira no Ato VIII.
+    if (this.mode === 'couple' || this.mode === 'family_swap') {
       const leader = this.active;
-      const comp = this.companion;
+      const followers = this.mode === 'couple'
+        ? [this.companion]
+        : this.familyParty.filter((member) => member !== leader);
 
-      // Distância natural: ~68px atrás do líder. Não ficam grudados!
-      const targetOffset = leader.facing === 1 ? -68 : 68;
-      const targetX = leader.x + targetOffset;
-      const dx = targetX - comp.x;
+      followers.forEach((comp, followerIndex) => {
+        const gap = this.mode === 'family_swap' ? 76 : 68;
+        const targetOffset = leader.facing === 1
+          ? -(gap * (followerIndex + 1))
+          : gap * (followerIndex + 1);
+        const targetX = leader.x + targetOffset;
+        const dx = targetX - comp.x;
 
-      if (Math.abs(dx) > 10) {
-        comp.vx = Math.sign(dx) * Math.min(comp.maxSpeed * 0.96, Math.abs(dx) * 4.2);
-        comp.facing = dx > 0 ? 1 : -1;
-      } else {
-        comp.vx *= 0.65;
-        comp.facing = leader.facing;
-      }
+        if (Math.abs(dx) > 10) {
+          comp.vx = Math.sign(dx) * Math.min(comp.maxSpeed * 0.98, Math.abs(dx) * 4.2);
+          comp.facing = dx > 0 ? 1 : -1;
+        } else {
+          comp.vx *= 0.65;
+          comp.facing = leader.facing;
+        }
 
-      // Posição prévia para teste contínuo (swept)
-      const prevCompY = comp.y;
+        const prevCompY = comp.y;
+        comp.vy += 1450 * dt;
+        comp.vy = Math.min(950, comp.vy);
 
-      // Gravidade e Física do Companheiro
-      comp.vy += 1450 * dt;
-      comp.vy = Math.min(950, comp.vy);
+        if (leader.isJumping && comp.onGround && leader.vy < -250 && comp.jumpCooldown <= 0) {
+          comp.vy = -720;
+          comp.onGround = false;
+          comp.isJumping = true;
+          comp.jumpCooldown = 0.35;
+        }
 
-      // Sincronia de Salto: salta se o líder saltar
-      if (leader.isJumping && comp.onGround && leader.vy < -250 && comp.jumpCooldown <= 0) {
-        comp.vy = -720;
+        comp.x += comp.vx * dt;
+        comp.y += comp.vy * dt;
         comp.onGround = false;
-        comp.isJumping = true;
-        comp.jumpCooldown = 0.35;
-      }
+        const compFootPrev = prevCompY + comp.height;
+        const compFootNow = comp.y + comp.height;
 
-      // Integrar movimento do companheiro
-      comp.x += comp.vx * dt;
-      comp.y += comp.vy * dt;
-
-      // CHECAGEM DE COLISÃO CONTÍNUA (SWEPT COLLISION) - IMPEDE QUEDA PELO CHÃO
-      comp.onGround = false;
-      const compFootPrev = prevCompY + comp.height;
-      const compFootNow = comp.y + comp.height;
-
-      for (const plat of platforms) {
-        // Se estiver dentro da largura da plataforma
-        if (comp.x + comp.width * 0.75 > plat.x && comp.x + comp.width * 0.25 < plat.x + plat.width) {
-          // Checagem swept contínua: o pé cruzou a superfície superior da plataforma?
-          if (comp.vy >= 0 && compFootPrev <= plat.y + 16 && compFootNow >= plat.y) {
-            comp.y = plat.y - comp.height;
-            comp.vy = 0;
-            comp.onGround = true;
-            comp.isJumping = false;
-            break;
+        for (const plat of platforms) {
+          if (comp.x + comp.width * 0.75 > plat.x && comp.x + comp.width * 0.25 < plat.x + plat.width) {
+            if (comp.vy >= 0 && compFootPrev <= plat.y + 16 && compFootNow >= plat.y) {
+              comp.y = plat.y - comp.height;
+              comp.vy = 0;
+              comp.onGround = true;
+              comp.isJumping = false;
+              break;
+            }
           }
         }
-      }
 
-      // TRAVA DE SEGURANÇA E TETHERING COM O LÍDER (NUNCA CAI DO CENÁRIO)
-      // Se o companheiro estiver caindo abaixo do piso principal (y > 2050 - height):
-      const floorLimit = 2050 - comp.height;
-      if (comp.y > floorLimit) {
-        comp.y = floorLimit;
-        comp.vy = 0;
-        comp.onGround = true;
-        comp.isJumping = false;
-      }
+        const floorLimit = 2050 - comp.height;
+        if (comp.y > floorLimit) {
+          comp.y = floorLimit;
+          comp.vy = 0;
+          comp.onGround = true;
+          comp.isJumping = false;
+        }
 
-      // Se o companheiro se distanciar demais do líder (mais de 300px ou descer demais):
-      const distToLeaderX = Math.abs(comp.x - leader.x);
-      const distToLeaderY = comp.y - leader.y;
-      if (distToLeaderX > 320 || distToLeaderY > 80) {
-        comp.x = leader.x - (leader.facing * 68);
-        comp.y = leader.y;
-        comp.vx = leader.vx;
-        comp.vy = 0;
-        comp.onGround = leader.onGround;
-        comp.isJumping = false;
-      }
+        const maxGroupDistance = this.mode === 'family_swap'
+          ? 360 + followerIndex * 84
+          : 320;
+        const distToLeaderX = Math.abs(comp.x - leader.x);
+        const distToLeaderY = comp.y - leader.y;
+        if (distToLeaderX > maxGroupDistance || distToLeaderY > 80) {
+          comp.x = targetX;
+          comp.y = leader.y;
+          comp.vx = leader.vx;
+          comp.vy = 0;
+          comp.onGround = leader.onGround;
+          comp.isJumping = false;
+        }
 
-      comp.update(dt, particles, audio);
+        comp.update(dt, particles, audio);
+      });
     }
   }
 
@@ -610,6 +606,11 @@ class GrisCharacter {
       this.companion.draw(ctx, time, isBW);
       // Desenha o líder em destaque na frente
       this.active.draw(ctx, time, isBW);
+    } else if (this.mode === 'family_swap') {
+      // Todos os cinco personagens aparecem correndo juntos no encerramento.
+      for (let i = this.familyParty.length - 1; i >= 0; i--) {
+        this.familyParty[i].draw(ctx, time, isBW);
+      }
     } else {
       this.active.draw(ctx, time, isBW);
     }
