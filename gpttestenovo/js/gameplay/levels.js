@@ -236,21 +236,8 @@ class LevelDesignManager {
     npcMgr.clear();
     // Região 1: Sábio Mago
     npcMgr.addNPC('mago', 5400, 1875, 110, 145, 'O Sábio Mago 🔮');
-    // Região 2: Príncipe Matheus Bebê
-    npcMgr.addNPC('matheus_baby', 12150, 1890, 85, 130, 'Príncipe Matheus Bebê 👶💙');
-    // Região 3: Pais no Ateliê
-    npcMgr.addNPC('king_stand', 18825, 1855, 80, 125, 'O Rei 👑');
-    npcMgr.addNPC('queen_stand', 18980, 1858, 80, 122, 'A Rainha 👑');
-    // Região 4: Pedro a Cavalo
-    npcMgr.addNPC('pedro_horse', 25650, 1900, 130, 120, 'Príncipe Pedro & Cavalo Branco ⚔️');
-    // Região 5: Família esperando Pedro
-    npcMgr.addNPC('matheus_stand', 32325, 1903, 76, 117, 'Príncipe Matheus 💙');
-    npcMgr.addNPC('king_stand', 32535, 1895, 80, 125, 'O Rei 👑');
-    // Região 6: Princesa Maria Rosa
-    npcMgr.addNPC('maria_rosa_stand', 39150, 1890, 85, 130, 'Princesa Maria Rosa 🌸👑');
-    // Região 7: Irmãos conduzindo no baile
-    npcMgr.addNPC('matheus_stand', 45825, 1903, 76, 117, 'Príncipe Matheus 💙');
-    npcMgr.addNPC('pedro_stand', 46035, 1894, 76, 126, 'Príncipe Pedro ⚔️');
+    // The mage is the only stationary encounter; the other family members
+    // appear through the playable story rather than as end-of-act NPCs.
   }
 
   setupWorldPuzzles(puzzleMgr) {
