@@ -163,7 +163,9 @@ class WatercolorRenderer {
     }
   }
 
-  // Desenhar as belíssimas pinturas do livro com transição contínua entre as regiões (Metroid style)
+  // Desenhar as pinturas do livro como painéis panorâmicos contínuos.
+  // Cada ato ocupa um painel largo, em vez de repetir a imagem lado a lado.
+  // Isso elimina a "emenda" vertical e deixa a câmera passear pelo cenário.
   drawBookIllustrationParallax(ctx, camera, pal, time) {
     const regionSize = 6750;
     const curRegionIdx = Math.max(0, Math.min(7, Math.floor(camera.x / regionSize)));
@@ -173,37 +175,51 @@ class WatercolorRenderer {
     const imgA = this.bgImages[`bg${curRegionIdx + 1}`] || this.bgImages.bg1;
     const imgB = this.bgImages[`bg${nextRegionIdx + 1}`] || imgA;
 
-    // Se estiver a 25% da fronteira, faz cross-fade suave para a próxima área
+    // Nos últimos 25% do ato, mistura a próxima pintura sem cortar o jogo.
     const blendFactor = progress > 0.75 ? (progress - 0.75) / 0.25 : 0;
 
-    const imgH = 680;
-    const horizonY = 0;
+    const drawPanel = (img, alpha, panelProgress) => {
+      if (!img || !img.complete || img.naturalWidth <= 0 || alpha <= 0) return;
 
-    // Desenhar Imagem da Região Atual em alta saturação/brilho natural (Estilo Cartoonesco)
-    if (imgA && imgA.complete && imgA.naturalWidth > 0) {
+      // Overscan horizontal: cobre toda a tela mesmo durante o movimento.
+      // Como há um único painel por camada, não existe borda de repetição.
+      const baseScale = (this.height * 0.94) / img.naturalHeight;
+      const overscanScale = Math.max(
+        baseScale,
+        (this.width * 1.12) / img.naturalWidth
+      );
+      // Escala uniforme: a pintura fica mais larga sem deformar arcos,
+      // rostos ou qualquer personagem que esteja no mundo jogável.
+      const panelW = img.naturalWidth * overscanScale;
+      const panelH = img.naturalHeight * overscanScale;
+      const maxPan = Math.max(0, panelW - this.width);
+      const pan = Math.max(0, Math.min(1, panelProgress));
+      const x = -maxPan * pan;
+      const y = (this.height - panelH) * 0.5;
+
       ctx.save();
-      ctx.globalAlpha = 0.95 * (1 - blendFactor);
-      const imgW = (imgA.width / imgA.height) * imgH;
-      const parallaxX = -(camera.x * 0.12) % imgW;
-
-      for (let x = parallaxX - imgW; x < this.width + imgW; x += imgW - 2) {
-        ctx.drawImage(imgA, x, horizonY, imgW, imgH);
-      }
+      ctx.globalAlpha = 0.96 * alpha;
+      ctx.drawImage(img, x, y, panelW, panelH);
       ctx.restore();
+    };
+
+    // O painel atual passeia suavemente do começo ao fim do ato.
+    drawPanel(imgA, 1 - blendFactor, progress);
+
+    // O próximo painel entra parado no começo do seu próprio panorama.
+    // Assim, no limite do ato, não há salto de posição nem emenda visível.
+    if (blendFactor > 0) {
+      drawPanel(imgB, blendFactor, 0);
     }
 
-    // Desenhar Imagem da Próxima Região em fusão suave
-    if (blendFactor > 0 && imgB && imgB.complete && imgB.naturalWidth > 0) {
-      ctx.save();
-      ctx.globalAlpha = 0.95 * blendFactor;
-      const imgW = (imgB.width / imgB.height) * imgH;
-      const parallaxX = -(camera.x * 0.12) % imgW;
-
-      for (let x = parallaxX - imgW; x < this.width + imgW; x += imgW - 2) {
-        ctx.drawImage(imgB, x, horizonY, imgW, imgH);
-      }
-      ctx.restore();
-    }
+    // Véu inferior integra a pintura ao piso e evita uma linha dura no horizonte.
+    ctx.save();
+    const lowerFade = ctx.createLinearGradient(0, this.height * 0.62, 0, this.height);
+    lowerFade.addColorStop(0, 'rgba(13, 12, 10, 0)');
+    lowerFade.addColorStop(1, 'rgba(13, 12, 10, 0.40)');
+    ctx.fillStyle = lowerFade;
+    ctx.fillRect(0, 0, this.width, this.height);
+    ctx.restore();
   }
 
   drawMidgroundArchitecture(ctx, pal, time) {

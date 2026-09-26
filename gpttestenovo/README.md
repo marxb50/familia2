@@ -30,5 +30,6 @@ Depois abra `http://localhost:8090/`.
 
 - A versão reduzida foi substituída pelo motor completo de `teste`, mantendo os arquivos extraídos do vídeo.
 - O mundo usa os oito atos e os cenários ilustrados do livro, com transições de cor e câmera com look-ahead.
+- Os fundos agora são painéis panorâmicos com escala uniforme e cross-fade; não há repetição lateral nem alteração no tamanho dos personagens.
 - O percurso conserva plataformas, NPCs, desafios e colecionáveis da edição completa.
 - A interface mantém o acabamento contemplativo inspirado em GRIS, portátil e PS2, agora sem sacrificar conteúdo jogável.
