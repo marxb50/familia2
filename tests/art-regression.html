@@ -1,0 +1,60 @@
+<!doctype html><html><meta charset="utf-8"><title>Art edition regression checks</title>
+<style>body{background:#142a32;color:#f5e6bd;font:14px monospace}iframe{width:844px;height:390px;border:0}pre{white-space:pre-wrap}button{padding:10px}</style>
+<button id="run">Run regression checks</button><pre id="results">Ready</pre>
+<button id="gallery">Visualizar os oito atos</button><div id="gallery-images" style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px"></div>
+<iframe id="game" src="../gpttestenovo/?act=1&v=art21"></iframe>
+<script>
+const frame=document.getElementById('game'),out=document.getElementById('results');
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+document.getElementById('gallery').onclick=async()=>{
+  const g=frame.contentWindow.gameEngine;g.running=false;await sleep(100);g.audio.stopNarration();g.audio.playNarration=()=>{};g.menuOpen=false;g.loadingArt=false;g.paused=false;
+  const target=document.getElementById('gallery-images');target.replaceChildren();
+  for(let i=0;i<8;i++){
+    g.loadChapter(i);g.input.keys={};for(let n=0;n<45;n++)g.update(1/60);
+    await Promise.all([...frame.contentWindow.GrisIndividualCharacter.imageCache.values(),...Object.values(g.renderer.bgImages)].map(img=>img.decode().catch(()=>{})));
+    g.render(performance.now());
+    const box=document.createElement('div');const label=document.createElement('p');label.textContent='ATO '+(i+1);box.append(label);
+    const img=document.createElement('img');img.src=g.canvas.toDataURL();img.style.width='100%';box.append(img);target.append(box);
+  }
+  const times=[];for(let i=0;i<30;i++){const start=performance.now();g.render(performance.now());times.push(performance.now()-start);}
+  const report=document.createElement('p');report.textContent='Render médio (30 quadros): '+(times.reduce((a,b)=>a+b,0)/times.length).toFixed(1)+' ms';target.append(report);
+};
+document.getElementById('run').onclick=async()=>{
+  const results=[]; const check=(name,ok,detail='')=>{results.push({name,pass:!!ok,detail});out.textContent=JSON.stringify(results,null,2);};
+  try {
+    const win=frame.contentWindow,g=win.gameEngine;
+    g.running=false; await sleep(120); g.audio.stopNarration(); g.audio.muted=true; g.audio.playNarration=()=>{};
+    g.setPaused(false);g.menuOpen=false;g.loadingArt=false;
+    await Promise.all(Object.values(g.renderer.bgImages).map(i=>i.decode().catch(()=>{})));
+    const step=n=>{for(let i=0;i<n;i++)g.update(1/60)};
+    for(let act=0;act<8;act++) {
+      g.loadChapter(act);g.input.keys={};step(60);
+      const x=g.character.x;
+      g.input.keys={KeyD:true};step(90);g.input.keys={};
+      check('Act '+(act+1)+' movement',g.character.x>x+200 && Number.isFinite(g.character.y),Math.round(g.character.x-x)+' px');
+      // Stable ground away from floating-platform sides, then trigger the real jump buffer.
+      g.character.x=g.levels.regions[act].playerStartX;g.character.y=2050-g.character.height;g.character.vy=0;g.character.onGround=true;
+      g.input.jumpPressed=true;g.input.jumpBufferTimer=.22;step(1);
+      check('Act '+(act+1)+' jump',g.character.vy<0,Math.round(g.character.vy)+' vy');
+      g.input.jumpHeld=false;g.input.jumpPressed=false;g.input.jumpBufferTimer=0;step(120);
+      check('Act '+(act+1)+' landing',g.character.onGround && g.character.y+g.character.height<=2051);
+      g.render(performance.now());
+      const expected={blue:act>=2,red:act>=4,green:act>=5,pink:act>=6,gold:act>=7};
+      check('Act '+(act+1)+' five color gates',Object.entries(expected).every(([k,v])=>g.unlockedColors[k]===v));
+    }
+    g.loadChapter(7);g.input.keys={KeyD:true};step(600);
+    check('Family follows for 10 seconds',g.character.familyParty.length===5 && g.character.familyParty.every(m=>Number.isFinite(m.x)&&Math.abs(m.x-g.character.x)<650));
+    const x=g.character.x;g.setPaused(true);step(120);check('Pause freezes physics',g.character.x===x);g.setPaused(false);
+    g.loadChapter(2);g.input.keys={};
+    check('Matheus starts grayscale',g.renderer.matheusColorProgress===0);
+    for(const b of g.puzzles.paintBrushes){g.character.x=b.x-g.character.width/2;g.character.y=b.y-g.character.height/2;g.puzzles.update(g.character,g.particles,g.audio,1/60);}
+    check('Four brushes restore partial color',g.puzzles.paintBrushesCollected===4 && g.renderer.matheusColorProgress>0,JSON.stringify({brushes:g.puzzles.paintBrushesCollected,color:g.renderer.matheusColorProgress}));
+    for(let i=0;i<7;i++){g.loadChapter(i);g.character.x=g.levels.regions[i].maxX+10;g.checkRegionProgression();check('Transition '+(i+1)+' to '+(i+2),g.levels.currentRegionIndex===i+1);}
+    g.loadChapter(7);g.character.x=52660;step(1);check('Final appears',g.finalSequenceStarted&&frame.contentDocument.getElementById('ending-screen').classList.contains('visible'));
+    const finalX=g.character.x;g.input.keys={KeyD:true};step(60);check('Ending freezes movement',g.character.x===finalX);
+    // Leave a representative gameplay view for visual inspection.
+    g.loadChapter(5);g.input.keys={};step(30);g.render(performance.now());
+    out.dataset.complete='true';out.dataset.failures=results.filter(r=>!r.pass).length;
+  }catch(e){check('Exception',false,e.stack);out.dataset.complete='true';out.dataset.failures='1';}
+};
+</script></html>

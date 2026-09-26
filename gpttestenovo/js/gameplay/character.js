@@ -100,8 +100,11 @@ class GrisIndividualCharacter {
 
   loadSprites() {
     const load = (src) => {
+      GrisIndividualCharacter.imageCache ||= new Map();
+      if (GrisIndividualCharacter.imageCache.has(src)) return GrisIndividualCharacter.imageCache.get(src);
       const img = new Image();
       img.src = src;
+      GrisIndividualCharacter.imageCache.set(src, img);
       return img;
     };
 
@@ -233,6 +236,15 @@ class GrisIndividualCharacter {
     const centerX = drawX + this.width / 2;
     const baseY = drawY + this.height;
 
+    if (this.onGround) {
+      ctx.save();
+      ctx.fillStyle = 'rgba(18,28,34,0.22)';
+      ctx.beginPath();
+      ctx.ellipse(centerX, baseY + 1, this.width * 0.58, 6, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
     // Rastro de aquarela
     if (this.trailPoints.length > 2) {
       ctx.save();
@@ -308,6 +320,10 @@ class GrisIndividualCharacter {
       activeImg = dict.walks[idx] || dict.idle;
     }
 
+    if (!activeImg?.complete || !activeImg.naturalWidth) {
+      activeImg = [dict.idle, ...(dict.walks || []), this.sprites.color.idle]
+        .find(img => img?.complete && img.naturalWidth) || activeImg;
+    }
     let spriteW = this.type === 'pedro_horse' ? 140 : (this.width + 24);
     let spriteH = this.type === 'pedro_horse' ? 135 : (this.height + 15);
     let trotY = 0;
@@ -396,7 +412,7 @@ class GrisCharacter {
       // separados nem exigir troca manual para acompanhar a cena.
       this.familyIdx = 0;
       this.familyParty = this.familyList.map((type, index) => {
-        const member = new GrisIndividualCharacter(type, startX - index * 76, startY);
+        const member = new GrisIndividualCharacter(type, startX - index * 112, startY);
         member.facing = 1;
         member.vx = 0;
         member.vy = 0;
@@ -543,7 +559,14 @@ class GrisCharacter {
         const targetX = leader.x + targetOffset;
         const dx = targetX - comp.x;
 
-        if (Math.abs(dx) > 10) {
+        if (this.mode === 'family_swap') {
+          // Match the leader's speed first, then gently correct the spacing.
+          // Parents must be able to keep up with Matheus without snapping forward.
+          const desired = leader.vx + dx * 3;
+          const limit = leader.maxSpeed * 1.3;
+          comp.vx += (Math.max(-limit, Math.min(limit, desired)) - comp.vx) * (1 - Math.exp(-10 * dt));
+          if (Math.abs(comp.vx) > 15) comp.facing = Math.sign(comp.vx);
+        } else if (Math.abs(dx) > 10) {
           comp.vx = Math.sign(dx) * Math.min(comp.maxSpeed * 0.98, Math.abs(dx) * 4.2);
           comp.facing = dx > 0 ? 1 : -1;
         } else {

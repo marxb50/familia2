@@ -110,7 +110,7 @@ class LevelDesignManager {
         minX: 47250,
         maxX: 55000,
         title: "Ato VIII • A Sagrada Família: O Poder da Adoção",
-        subtitle: "Todas as cores e virtudes reunidas! Pressione C para alternar entre os membros da família e celebre o Amor que nasce do Coração!",
+        subtitle: "Cinco corações, um só caminho. Corra com toda a família até o altar e celebre o amor que os reuniu!",
         characterType: "family_swap",
         colorKey: "gold",
         bgKey: "bg8",

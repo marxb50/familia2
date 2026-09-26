@@ -13,6 +13,10 @@ class GrisGameEngine {
     this.canvas = document.getElementById('viewport-canvas');
     this.lastTime = 0;
     this.running = false;
+    this.paused = false;
+    this.menuOpen = true;
+    this.loadingArt = true;
+    this.hudTimer = 0;
 
     // Inicialização dos Módulos Principais
     this.input = new InputManager();
@@ -74,12 +78,24 @@ class GrisGameEngine {
     // 5. Suporte a Parâmetro de URL (?act=X ou ?chapter=X)
     const urlParams = new URLSearchParams(window.location.search);
     const startChapter = urlParams.get('chapter') || urlParams.get('act');
-    const startIdx = startChapter ? Math.max(0, Math.min(7, parseInt(startChapter) - 1)) : 0;
+    const startIdx = Math.max(0, Math.min(7, (parseInt(startChapter, 10) || 1) - 1));
+    this.menuOpen = !startChapter;
     if (startChapter) {
       document.getElementById('start-overlay')?.classList.add('hidden');
     }
 
     this.loadChapter(startIdx);
+    const party = this.character.mode === 'couple' ? [this.character.king, this.character.queen]
+      : this.character.mode === 'family_swap' ? this.character.familyParty : [this.character.active];
+    const firstImages = [this.renderer.bgImages[`bg${startIdx + 1}`], ...party.map(c => c.sprites.color.idle), ...party.map(c => c.sprites.bw.idle)];
+    Promise.all(firstImages.map(img => img.decode().catch(() => {}))).then(() => {
+      this.loadingArt = false;
+      document.getElementById('loading-art').hidden = true;
+      if (!this.menuOpen) {
+        this.showChapterTitle(this.levels.getCurrentChapter());
+        this.showStoryNarration(this.levels.getCurrentChapter());
+      }
+    });
 
     this.running = true;
     requestAnimationFrame((t) => this.loop(t));
@@ -89,6 +105,8 @@ class GrisGameEngine {
   loadChapter(chapterIndex) {
     const region = this.levels.getRegion(chapterIndex);
     if (!region) return;
+    this.finalSequenceStarted = false;
+    document.getElementById('ending-screen')?.classList.remove('visible');
 
     this.levels.currentRegionIndex = chapterIndex;
 
@@ -106,7 +124,7 @@ class GrisGameEngine {
 
     // Enquadramento inicial da câmera
     this.camera.x = startX + this.character.width / 2;
-    this.camera.y = startY + this.character.height / 2 - 40;
+    this.camera.y = startY + this.character.height / 2 - 145;
     this.camera.targetX = this.camera.x;
     this.camera.targetY = this.camera.y;
 
@@ -123,7 +141,7 @@ class GrisGameEngine {
     this.updateHUD();
 
     // Iniciar Narração Oficial com Legendas no rodapé (sem bloquear)
-    this.showStoryNarration(region);
+    if (!this.loadingArt) this.showStoryNarration(region);
   }
 
   // Verificação de Progressão Contínua (Estilo Metroid: sem corte, sem teleporte)
@@ -190,29 +208,51 @@ class GrisGameEngine {
     }
   }
 
+  setPaused(value) {
+    if (this.menuOpen || this.finalSequenceStarted) return;
+    this.paused = value;
+    document.getElementById('pause-screen').hidden = !value;
+    this.input.keys = {};
+    this.input.axisX = 0;
+    this.input.jumpPressed = this.input.jumpHeld = false;
+    this.input.jumpBufferTimer = 0;
+    const narrator = this.audio.currentNarrator;
+    if (value) { narrator?.pause(); this.audio.ctx?.suspend(); }
+    else { narrator?.play().catch(() => {}); this.audio.resume(); }
+    if (value) document.getElementById('btn-resume').focus();
+    else document.getElementById('btn-resume').blur();
+  }
+
   showStoryNarration(region) {
-    const subContainer = document.getElementById('cinematic-subtitles-container');
-    const subText = document.getElementById('subtitles-text');
+    if (this.menuOpen) return;
+    this.subtitlePages = (region.cutsceneText || '').match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [];
+    this.subtitleElapsed = 0;
+    this.subtitleIndex = -1;
+    this.subtitleDuration = Math.max(12, (region.cutsceneText || '').length / 17);
+    this.isCutsceneActive = false;
+    if (region.narrationAudio) this.audio.playNarration(region.narrationAudio, () => {
+      this.subtitlePages = [];
+      document.getElementById('cinematic-subtitles-container').classList.add('hidden');
+    });
+    this.updateSubtitles(0);
+  }
 
-    this.isCutsceneActive = false; // O jogador NUNCA é congelado!
-
-    if (subContainer && subText && region.cutsceneText) {
-      subText.textContent = region.cutsceneText;
-      subContainer.classList.remove('hidden');
-      subContainer.style.opacity = '1';
-    }
-
-    // Tocar áudio oficial com narração de Thalita Neural
-    if (region.narrationAudio) {
-      this.audio.playNarration(region.narrationAudio, () => {
-        // Ao concluir a fala, esmaecer a barra de legendas com gentileza
-        if (subContainer) {
-          subContainer.style.opacity = '0';
-          setTimeout(() => {
-            subContainer.classList.add('hidden');
-          }, 800);
-        }
-      });
+  updateSubtitles(dt) {
+    if (!this.subtitlePages?.length) return;
+    this.subtitleElapsed += dt;
+    const audio = this.audio.currentNarrator;
+    const hasAudioTime = audio && !audio.paused && Number.isFinite(audio.duration) && audio.duration > 0;
+    const progress = hasAudioTime ? audio.currentTime / audio.duration : this.subtitleElapsed / this.subtitleDuration;
+    const bar = document.getElementById('cinematic-subtitles-container');
+    if (progress >= 1) { bar.classList.add('hidden'); return; }
+    const total = this.subtitlePages.reduce((n, s) => n + s.length, 0);
+    let end = 0;
+    const index = this.subtitlePages.findIndex(s => { end += s.length; return progress < end / total; });
+    if (index !== this.subtitleIndex && index >= 0) {
+      this.subtitleIndex = index;
+      document.getElementById('subtitles-text').textContent = this.subtitlePages[index].trim();
+      bar.style.opacity = '1';
+      bar.classList.remove('hidden');
     }
   }
 
@@ -239,6 +279,9 @@ class GrisGameEngine {
   startFinalSequence() {
     if (this.finalSequenceStarted) return;
     this.finalSequenceStarted = true;
+    this.subtitlePages = [];
+    document.getElementById('cinematic-subtitles-container')?.classList.add('hidden');
+    document.getElementById('chapter-title-screen')?.classList.remove('visible');
 
     // Congelar somente quando a família já chegou junta ao altar.
     this.character.vx = 0;
@@ -313,6 +356,12 @@ class GrisGameEngine {
   }
 
   updateHUD() {
+    const region = this.levels.getCurrentChapter();
+    const index = this.levels.currentRegionIndex;
+    document.getElementById('journey-act').textContent = `ATO ${index + 1} / VIII`;
+    document.getElementById('journey-name').textContent = this.renderer.art.theme(index).name;
+    const progress = Math.max(0, Math.min(1, (this.character.x - region.minX) / (region.maxX - region.minX)));
+    document.getElementById('journey-progress').style.transform = `scaleX(${progress})`;
     // Estrelas de memória coletadas
     const countEl = document.getElementById('hud-stars-count');
     if (countEl) {
@@ -364,7 +413,18 @@ class GrisGameEngine {
     // Iniciar Jornada no Menu Inicial
     document.getElementById('btn-start-game')?.addEventListener('click', () => {
       this.audio.init();
+      this.menuOpen = false;
       document.getElementById('start-overlay')?.classList.add('hidden');
+      this.showChapterTitle(this.levels.getCurrentChapter());
+      this.showStoryNarration(this.levels.getCurrentChapter());
+    });
+    document.getElementById('btn-pause')?.addEventListener('click', () => this.setPaused(true));
+    document.getElementById('btn-resume')?.addEventListener('click', () => this.setPaused(false));
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Escape' && !e.repeat && !this.menuOpen && !this.finalSequenceStarted) this.setPaused(!this.paused);
+    });
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden && !this.menuOpen && !this.finalSequenceStarted) this.setPaused(true);
     });
 
     // Botão de Alternar Shader de Aquarela
@@ -422,6 +482,12 @@ class GrisGameEngine {
   }
 
   update(dt) {
+    if (this.menuOpen || this.paused || this.loadingArt) return;
+    if (this.finalSequenceStarted) {
+      this.particles.update(dt);
+      return;
+    }
+    this.updateSubtitles(dt);
     // 1. Atualizar Entradas
     this.input.update(dt);
 
@@ -479,7 +545,8 @@ class GrisGameEngine {
     this.camera.update(this.character, dt);
 
     // 9. Atualizar HUD
-    this.updateHUD();
+    this.hudTimer += dt;
+    if (this.hudTimer >= 0.1) { this.updateHUD(); this.hudTimer = 0; }
   }
 
   render(timestamp) {

@@ -67,7 +67,7 @@ class CinematicCamera {
 
     // 2. Verificar Zonas de Câmera Ativas
     let currentTargetZoom = 1.0;
-    let extraOffsetY = -40; // Levemente elevado para mostrar mais do céu/ruínas
+    let extraOffsetY = -145; // More room for the painted landscape; feet in the lower third.
 
     const charCenterX = target.x + (target.width || 60) / 2;
     const charCenterY = target.y + (target.height || 100) / 2;

@@ -60,6 +60,7 @@ class WatercolorRenderer {
     this.matheusColorProgress = 1;
 
     // Carregar Ilustrações de Fundo do Livro Franklândia
+    this.art = new StorybookArt();
     this.bgImages = {};
     this.loadBackgroundImages();
 
@@ -170,6 +171,7 @@ class WatercolorRenderer {
     particles.draw(ctx, camBounds);
 
     camera.restoreTransform(ctx);
+    this.art.drawAtmosphere(ctx, camera, time, window.gameEngine?.levels?.currentRegionIndex || 0);
 
     // 7. ONDAS DE CHOQUE DE AQUARELA (Color Blooms)
     this.drawBloomWaves(ctx, camera);
@@ -187,94 +189,7 @@ class WatercolorRenderer {
   // Desenhar as pinturas do livro em uma faixa ampla, sem transformar o
   // cenário em um "zoom" gigante em relação aos personagens.
   drawBookIllustrationParallax(ctx, camera, pal, time) {
-    const regionSize = 6750;
-    const curRegionIdx = Math.max(0, Math.min(7, Math.floor(camera.x / regionSize)));
-    const nextRegionIdx = Math.min(7, curRegionIdx + 1);
-    const progress = (camera.x % regionSize) / regionSize;
-
-    const imgA = this.bgImages[`bg${curRegionIdx + 1}`] || this.bgImages.bg1;
-    const imgB = this.bgImages[`bg${nextRegionIdx + 1}`] || imgA;
-
-    // Nos últimos 25% do ato, mistura a próxima pintura sem cortar o jogo.
-    const blendFactor = progress > 0.75 ? (progress - 0.75) / 0.25 : 0;
-
-    const drawAmbient = (img, alpha) => {
-      if (!img || !img.complete || img.naturalWidth <= 0 || alpha <= 0) return;
-
-      // Extensão atmosférica desfocada: preenche as laterais, sem definir a
-      // escala percebida dos elementos nítidos do cenário.
-      const scale = Math.max(
-        this.width / img.naturalWidth,
-        (this.height * 0.80) / img.naturalHeight
-      );
-      const w = img.naturalWidth * scale;
-      const h = img.naturalHeight * scale;
-
-      ctx.save();
-      ctx.globalAlpha = 0.22 * alpha;
-      ctx.filter = this.getMatheusImageFilter(true);
-      ctx.drawImage(img, (this.width - w) * 0.5, 0, w, h);
-      ctx.filter = 'none';
-      ctx.restore();
-    };
-
-    const drawMirroredTiles = (img, alpha) => {
-      if (!img || !img.complete || img.naturalWidth <= 0 || alpha <= 0) return;
-
-      // Altura próxima à composição original: o rei, a rainha e as crianças
-      // continuam proporcionais ao cenário. A largura cresce pela repetição
-      // espelhada, nunca por um zoom desproporcional.
-      // A pintura desce quase até o rodapé; isso evita que o pulo revele
-      // uma faixa vazia antes do piso, sem fazer o cenário ocupar o tamanho
-      // exagerado da primeira tentativa panorâmica.
-      const tileH = this.height * 0.90;
-      const tileW = tileH * (img.naturalWidth / img.naturalHeight);
-      const phase = ((camera.x * 0.12) % tileW + tileW) % tileW;
-      const start = -phase - tileW;
-      const tileIndex = Math.floor((camera.x * 0.12) / tileW);
-      const y = 0;
-
-      ctx.save();
-      ctx.globalAlpha = 0.96 * alpha;
-      ctx.filter = this.getMatheusImageFilter(false);
-      for (let i = -1; i <= 3; i++) {
-        const x = start + i * tileW;
-        const mirror = ((tileIndex + i) & 1) !== 0;
-
-        ctx.save();
-        if (mirror) {
-          ctx.translate(x + tileW, y);
-          ctx.scale(-1, 1);
-          ctx.drawImage(img, 0, 0, tileW, tileH);
-        } else {
-          ctx.drawImage(img, x, y, tileW, tileH);
-        }
-        ctx.restore();
-      }
-      ctx.restore();
-    };
-
-    // A extensão suave fica atrás; os painéis nítidos preservam o tamanho
-    // original e se encontram por espelhamento, sem uma costura abrupta.
-    drawAmbient(imgA, 1 - blendFactor);
-    drawMirroredTiles(imgA, 1 - blendFactor);
-
-    // A troca de ato também é cruzada para que a faixa continue sem corte.
-    if (blendFactor > 0) {
-      drawAmbient(imgB, blendFactor);
-      drawMirroredTiles(imgB, blendFactor);
-    }
-
-    // Véu inferior integra a pintura ao piso e evita uma linha dura no horizonte.
-    ctx.save();
-    // Só escurecer o último trecho do quadro; começar em 62% criava uma
-    // linha horizontal visível quando a câmera subia durante o pulo.
-    const lowerFade = ctx.createLinearGradient(0, this.height * 0.80, 0, this.height);
-    lowerFade.addColorStop(0, 'rgba(13, 12, 10, 0)');
-    lowerFade.addColorStop(1, 'rgba(13, 12, 10, 0.22)');
-    ctx.fillStyle = lowerFade;
-    ctx.fillRect(0, 0, this.width, this.height);
-    ctx.restore();
+    this.art.drawBackground(ctx, camera, this);
   }
 
   drawMidgroundArchitecture(ctx, pal, time) {
