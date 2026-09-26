@@ -163,9 +163,8 @@ class WatercolorRenderer {
     }
   }
 
-  // Desenhar as pinturas do livro como painéis panorâmicos contínuos.
-  // Cada ato ocupa um painel largo, em vez de repetir a imagem lado a lado.
-  // Isso elimina a "emenda" vertical e deixa a câmera passear pelo cenário.
+  // Desenhar as pinturas do livro em uma faixa ampla, sem transformar o
+  // cenário em um "zoom" gigante em relação aos personagens.
   drawBookIllustrationParallax(ctx, camera, pal, time) {
     const regionSize = 6750;
     const curRegionIdx = Math.max(0, Math.min(7, Math.floor(camera.x / regionSize)));
@@ -178,38 +177,67 @@ class WatercolorRenderer {
     // Nos últimos 25% do ato, mistura a próxima pintura sem cortar o jogo.
     const blendFactor = progress > 0.75 ? (progress - 0.75) / 0.25 : 0;
 
-    const drawPanel = (img, alpha, panelProgress) => {
+    const drawAmbient = (img, alpha) => {
       if (!img || !img.complete || img.naturalWidth <= 0 || alpha <= 0) return;
 
-      // Overscan horizontal: cobre toda a tela mesmo durante o movimento.
-      // Como há um único painel por camada, não existe borda de repetição.
-      const baseScale = (this.height * 0.94) / img.naturalHeight;
-      const overscanScale = Math.max(
-        baseScale,
-        (this.width * 1.12) / img.naturalWidth
+      // Extensão atmosférica desfocada: preenche as laterais, sem definir a
+      // escala percebida dos elementos nítidos do cenário.
+      const scale = Math.max(
+        this.width / img.naturalWidth,
+        (this.height * 0.80) / img.naturalHeight
       );
-      // Escala uniforme: a pintura fica mais larga sem deformar arcos,
-      // rostos ou qualquer personagem que esteja no mundo jogável.
-      const panelW = img.naturalWidth * overscanScale;
-      const panelH = img.naturalHeight * overscanScale;
-      const maxPan = Math.max(0, panelW - this.width);
-      const pan = Math.max(0, Math.min(1, panelProgress));
-      const x = -maxPan * pan;
-      const y = (this.height - panelH) * 0.5;
+      const w = img.naturalWidth * scale;
+      const h = img.naturalHeight * scale;
 
       ctx.save();
-      ctx.globalAlpha = 0.96 * alpha;
-      ctx.drawImage(img, x, y, panelW, panelH);
+      ctx.globalAlpha = 0.22 * alpha;
+      ctx.filter = 'blur(24px) saturate(0.82)';
+      ctx.drawImage(img, (this.width - w) * 0.5, 0, w, h);
+      ctx.filter = 'none';
       ctx.restore();
     };
 
-    // O painel atual passeia suavemente do começo ao fim do ato.
-    drawPanel(imgA, 1 - blendFactor, progress);
+    const drawMirroredTiles = (img, alpha) => {
+      if (!img || !img.complete || img.naturalWidth <= 0 || alpha <= 0) return;
 
-    // O próximo painel entra parado no começo do seu próprio panorama.
-    // Assim, no limite do ato, não há salto de posição nem emenda visível.
+      // Altura próxima à composição original: o rei, a rainha e as crianças
+      // continuam proporcionais ao cenário. A largura cresce pela repetição
+      // espelhada, nunca por um zoom desproporcional.
+      const tileH = this.height * 0.72;
+      const tileW = tileH * (img.naturalWidth / img.naturalHeight);
+      const phase = ((camera.x * 0.12) % tileW + tileW) % tileW;
+      const start = -phase - tileW;
+      const tileIndex = Math.floor((camera.x * 0.12) / tileW);
+      const y = 0;
+
+      ctx.save();
+      ctx.globalAlpha = 0.96 * alpha;
+      for (let i = -1; i <= 3; i++) {
+        const x = start + i * tileW;
+        const mirror = ((tileIndex + i) & 1) !== 0;
+
+        ctx.save();
+        if (mirror) {
+          ctx.translate(x + tileW, y);
+          ctx.scale(-1, 1);
+          ctx.drawImage(img, 0, 0, tileW, tileH);
+        } else {
+          ctx.drawImage(img, x, y, tileW, tileH);
+        }
+        ctx.restore();
+      }
+      ctx.restore();
+    };
+
+    // A extensão suave fica atrás; os painéis nítidos preservam o tamanho
+    // original e se encontram por espelhamento, sem uma costura abrupta.
+    drawAmbient(imgA, 1 - blendFactor);
+    drawMirroredTiles(imgA, 1 - blendFactor);
+
+    // A troca de ato também é cruzada para que a faixa continue sem corte.
     if (blendFactor > 0) {
-      drawPanel(imgB, blendFactor, 0);
+      drawAmbient(imgB, blendFactor);
+      drawMirroredTiles(imgB, blendFactor);
     }
 
     // Véu inferior integra a pintura ao piso e evita uma linha dura no horizonte.
