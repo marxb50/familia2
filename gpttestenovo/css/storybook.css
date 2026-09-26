@@ -70,7 +70,8 @@ kbd { font: inherit; border: 1px solid #adc0b870; border-radius: 3px; padding: 3
   .hud-bottom { display: none !important; }
   #mobile-touch-controls { bottom: 3%; left: 3%; right: 3%; }
   .touch-cluster { gap: 7px; }
-  .touch-btn, .touch-btn-action { width: 40px; height: 40px; font-size: 16px; background: #172c36a6; border-color: #e4d2a266; }
+  #touch-swap, #touch-sing, #touch-action { display: none; }
+  .touch-btn, .touch-btn-action { width: 54px; height: 54px; font-size: 19px; background: #172c36a6; border-color: #e4d2a266; }
   .cinematic-subtitles-bar { bottom: 17%; padding: 7px 13px; width: 74%; }
   .menu-eyebrow { margin-bottom: 12px; }
   .menu-description { margin-bottom: 14px; }
@@ -87,7 +88,7 @@ kbd { font: inherit; border: 1px solid #adc0b870; border-radius: 3px; padding: 3
   #journey-name, .journey-track { display: none; }
   #journey-act { font-size: 8px; }
   .journey-location { top: 21%; }
-  .touch-btn, .touch-btn-action { width: 33px; height: 33px; }
+  .touch-btn, .touch-btn-action { width: 46px; height: 46px; }
   .ending-card { padding: 12px 20px; }
   .ending-card h1 { margin-bottom: 8px; }
   .ending-kicker, .ending-seal { display: none; }
