@@ -98,6 +98,9 @@ class GrisIndividualCharacter {
     }
     // Apply once per individual, including the carriage and Pedro's horse.
     this.maxSpeed *= 1.3;
+    // Act I is led by the royal couple and still felt sluggish after the
+    // general movement boost. Give that playable pair one additional 30%.
+    if (this.type === 'king' || this.type === 'queen') this.maxSpeed *= 1.3;
   }
 
   loadSprites() {
