@@ -245,9 +245,11 @@ class WatercolorRenderer {
 
     // Véu inferior integra a pintura ao piso e evita uma linha dura no horizonte.
     ctx.save();
-    const lowerFade = ctx.createLinearGradient(0, this.height * 0.62, 0, this.height);
+    // Só escurecer o último trecho do quadro; começar em 62% criava uma
+    // linha horizontal visível quando a câmera subia durante o pulo.
+    const lowerFade = ctx.createLinearGradient(0, this.height * 0.80, 0, this.height);
     lowerFade.addColorStop(0, 'rgba(13, 12, 10, 0)');
-    lowerFade.addColorStop(1, 'rgba(13, 12, 10, 0.40)');
+    lowerFade.addColorStop(1, 'rgba(13, 12, 10, 0.22)');
     ctx.fillStyle = lowerFade;
     ctx.fillRect(0, 0, this.width, this.height);
     ctx.restore();
