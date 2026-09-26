@@ -154,6 +154,32 @@ html, body {
   position: relative;
 }
 
+/* As quatro cores ficam visíveis no topo desde o Ato I.
+   O brilho forte continua reservado ao despertar de cada ato. */
+#prism-blue {
+  background: rgba(58, 134, 255, 0.38);
+  border-color: rgba(128, 191, 255, 0.62);
+  box-shadow: 0 0 8px rgba(58, 134, 255, 0.24);
+}
+
+#prism-red {
+  background: rgba(230, 57, 70, 0.38);
+  border-color: rgba(255, 117, 143, 0.62);
+  box-shadow: 0 0 8px rgba(230, 57, 70, 0.24);
+}
+
+#prism-green {
+  background: rgba(42, 157, 143, 0.38);
+  border-color: rgba(82, 183, 136, 0.62);
+  box-shadow: 0 0 8px rgba(42, 157, 143, 0.24);
+}
+
+#prism-gold {
+  background: rgba(255, 209, 102, 0.38);
+  border-color: rgba(255, 243, 176, 0.62);
+  box-shadow: 0 0 8px rgba(255, 209, 102, 0.24);
+}
+
 .prism-orb.unlocked-red {
   background: #e63946;
   border-color: #ff758f;
