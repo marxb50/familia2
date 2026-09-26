@@ -263,6 +263,15 @@ class LevelDesignManager {
     ];
     stars.forEach(s => puzzleMgr.addMemoryStar(s.x, s.y, s.id));
 
+    // A generous trail of small, easy-to-reach lights runs through every act.
+    // These are regular memory stars and never advance Matheus's brush colors.
+    const bonusStarOffsets = [950, 2750, 4450, 5700];
+    this.regions.forEach((region, regionIndex) => {
+      bonusStarOffsets.forEach((offset, pointIndex) => {
+        puzzleMgr.addMemoryStar(region.minX + offset, 1970, `trail${regionIndex + 1}_${pointIndex + 1}`);
+      });
+    });
+
     // Tinta azul e quatro pincéis mágicos do Matheus (Ato 3).
     // Os antigos pontos brilhantes desta região foram substituídos por estes
     // itens; cada coleta revela uma pequena parte, deixando o fim mais vivo.

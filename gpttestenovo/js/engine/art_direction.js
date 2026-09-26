@@ -28,10 +28,13 @@ class StorybookArt {
     c.width = Math.round(paintedH * img.naturalWidth / img.naturalHeight);
     const ctx = c.getContext('2d');
     const theme = this.theme(index);
-    ctx.fillStyle = theme.shade;
-    ctx.fillRect(0, 0, c.width, c.height);
     if (index === 0) ctx.filter = 'grayscale(1)';
     else if (index === 2) ctx.filter = `grayscale(${1 - step / 100 * 0.62}) saturate(${0.42 + step / 100 * 0.58})`;
+    // Desaturate the backing fill as well as the illustration. Keeping this
+    // blue-tinted fill outside the filter made the Act 3 ground look colored
+    // before Matheus collected any of his brushes.
+    ctx.fillStyle = theme.shade;
+    ctx.fillRect(0, 0, c.width, c.height);
     ctx.drawImage(img, 0, 0, c.width, paintedH);
     const fade = ctx.createLinearGradient(0, paintedH - 250, 0, paintedH);
     fade.addColorStop(0, 'transparent');
