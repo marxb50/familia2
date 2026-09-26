@@ -102,6 +102,7 @@ class WorldRenderer {
 
         const walkwayH = Math.min(32, plat.height);
         const foundationH = plat.height - walkwayH;
+        const isLongFloor = plat.width > 10000;
 
         // 1. FUNDAÇÃO ARQUITETÔNICA COM ARCADA E NÉVOA (se altura > 40px)
         if (foundationH > 0) {
@@ -112,7 +113,20 @@ class WorldRenderer {
           abyssGrad.addColorStop(1, 'rgba(15, 12, 18, 0.2)');
 
           ctx.fillStyle = abyssGrad;
+          // A fundação continua sólida para a leitura do piso, mas deixa
+          // respirar o cenário atrás dela; isso evita uma faixa cinza cortada
+          // quando a câmera acompanha o personagem durante o pulo.
+          ctx.globalAlpha = isLongFloor ? 0.82 : 1.0;
           ctx.fillRect(plat.x, plat.y + walkwayH, plat.width, foundationH);
+          ctx.globalAlpha = 1.0;
+
+          if (isLongFloor && this.stonePattern) {
+            ctx.save();
+            ctx.globalAlpha = 0.18;
+            ctx.fillStyle = this.stonePattern;
+            ctx.fillRect(plat.x, plat.y + walkwayH, plat.width, foundationH);
+            ctx.restore();
+          }
 
           // Colunas esguias neoclássicas e arcadas delicadas
           if (plat.width >= 160 && foundationH >= 40) {
@@ -166,7 +180,9 @@ class WorldRenderer {
 
         // Faixa de friso e cornija em relevo
         ctx.fillStyle = pal.accent;
+        ctx.globalAlpha = isLongFloor ? 0.68 : 1.0;
         ctx.fillRect(plat.x, plat.y, plat.width, 6);
+        ctx.globalAlpha = 1.0;
 
         // Fio dourado reflexivo no topo
         ctx.strokeStyle = '#fff8e7';
