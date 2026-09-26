@@ -39,6 +39,7 @@ class GrisGameEngine {
       blue: false,
       red: false,
       green: false,
+      pink: false,
       gold: false
     };
 
@@ -112,7 +113,7 @@ class GrisGameEngine {
     this.renderer.setPalette(region.colorKey);
     this.renderer.setMatheusColorProgress(region.id === 3 ? 0 : 1);
     this.audio.setChapterTheme(region.colorKey);
-    this.unlockedColors[region.colorKey] = true;
+    this.updateChapterColorUnlocks(region.id);
 
     // Exibir Título Poético
     this.showChapterTitle(region);
@@ -135,7 +136,7 @@ class GrisGameEngine {
       this.renderer.setPalette(region.colorKey);
       this.renderer.setMatheusColorProgress(region.id === 3 ? 0 : 1);
       this.audio.setChapterTheme(region.colorKey);
-      this.unlockedColors[region.colorKey] = true;
+      this.updateChapterColorUnlocks(region.id);
 
       // Se a nova região requer um protagonista específico (Matheus, Pedro, Maria Rosa ou Família)
       if (this.character.mode !== region.characterType) {
@@ -169,6 +170,22 @@ class GrisGameEngine {
       setTimeout(() => {
         screen.classList.remove('visible');
       }, 4200);
+    }
+  }
+
+  // As cinco virtudes entram na ordem narrativa do livro, mantendo os cinco
+  // pontos do prisma sempre presentes no HUD.
+  updateChapterColorUnlocks(chapterId) {
+    const unlockActs = {
+      blue: 3,
+      red: 5,
+      green: 6,
+      pink: 7,
+      gold: 8
+    };
+
+    for (const [color, act] of Object.entries(unlockActs)) {
+      this.unlockedColors[color] = chapterId >= act;
     }
   }
 
@@ -231,6 +248,7 @@ class GrisGameEngine {
       red: '#e63946',
       green: '#2a9d8f',
       blue: '#3a86ff',
+      pink: '#ff70a6',
       gold: '#ffd166'
     }[colorKey] || '#dfc382';
 
@@ -239,7 +257,7 @@ class GrisGameEngine {
     this.audio.playColorAwakeningChord(colorKey);
     this.camera.triggerShake(18);
 
-    this.unlockedColors[colorKey] = true;
+    this.updateChapterColorUnlocks(this.levels.regions[this.levels.currentRegionIndex]?.id || 1);
     this.renderer.setPalette(colorKey);
     this.updateHUD();
 
@@ -277,12 +295,10 @@ class GrisGameEngine {
     }
 
     // Prisma de Cores do Coração
-    const activeColor = this.levels.regions[this.levels.currentRegionIndex]?.colorKey;
-    const prismColors = ['blue', 'red', 'green', 'gold'];
+    const prismColors = ['blue', 'red', 'green', 'pink', 'gold'];
     for (const color of prismColors) {
       const prism = document.getElementById(`prism-${color}`);
       prism?.classList.toggle(`unlocked-${color}`, this.unlockedColors[color]);
-      prism?.classList.toggle('active-prism', activeColor === color && this.unlockedColors[color]);
     }
 
     // Dica de Personagem Ativo

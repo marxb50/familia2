@@ -35,7 +35,7 @@ class InteractivePuzzleManager {
     this.totalStarsInLevel = 0;
 
     this.paintBrushImage = new Image();
-    this.paintBrushImage.src = 'assets/images/ui/item_brush_blue.png?v=17.0';
+    this.paintBrushImage.src = 'assets/images/ui/item_brush_blue.png?v=18.0';
   }
 
   reset() {

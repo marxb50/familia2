@@ -135,59 +135,92 @@ class LevelDesignManager {
 
       // REGIÃO 1: CASTELO & MAGO (0 a 6750)
       { x: 900, y: 1910, width: 320, height: 28, isOneWay: true },
+      { x: 1320, y: 1840, width: 220, height: 24, isOneWay: true },
       { x: 1650, y: 1780, width: 420, height: 32 },
+      { x: 2200, y: 1820, width: 220, height: 24, isOneWay: true },
       { x: 2550, y: 1890, width: 360, height: 28, isOneWay: true },
+      { x: 3070, y: 1800, width: 220, height: 24, isOneWay: true },
       { x: 3450, y: 1760, width: 440, height: 32 },
+      { x: 4100, y: 1830, width: 240, height: 24, isOneWay: true },
       { x: 4500, y: 1880, width: 380, height: 28, isOneWay: true },
 
       // REGIÃO 2: ESTRADA DOS GIRASSÓIS & VILAREJO (6750 a 13500)
       { x: 7650, y: 1910, width: 320, height: 28, isOneWay: true },
+      { x: 8150, y: 1840, width: 220, height: 24, isOneWay: true },
       { x: 8475, y: 1770, width: 420, height: 32 },
+      { x: 9060, y: 1810, width: 220, height: 24, isOneWay: true },
       { x: 9450, y: 1890, width: 360, height: 28, isOneWay: true },
+      { x: 9870, y: 1810, width: 220, height: 24, isOneWay: true },
       { x: 10350, y: 1750, width: 440, height: 32 },
+      { x: 10880, y: 1820, width: 240, height: 24, isOneWay: true },
       { x: 11325, y: 1880, width: 380, height: 28, isOneWay: true },
 
       // REGIÃO 3: ATELIÊ DE MATHEUS & PONTES DE TINTA (13500 a 20250)
       { x: 14400, y: 1890, width: 300, height: 28, isOneWay: true },
+      { x: 14900, y: 1810, width: 220, height: 24, isOneWay: true },
       { x: 15225, y: 1740, width: 420, height: 32 },
+      { x: 15800, y: 1810, width: 240, height: 24, isOneWay: true },
       { x: 16200, y: 1860, width: 360, height: 28, isOneWay: true },
+      { x: 16680, y: 1790, width: 240, height: 24, isOneWay: true },
       { x: 17100, y: 1720, width: 440, height: 34 },
+      { x: 17650, y: 1790, width: 240, height: 24, isOneWay: true },
       { x: 18075, y: 1860, width: 360, height: 28, isOneWay: true },
 
       // REGIÃO 4: COLINAS DA CORAGEM & PEDRO (20250 a 27000)
       { x: 21150, y: 1910, width: 320, height: 28, isOneWay: true },
+      { x: 21650, y: 1840, width: 220, height: 24, isOneWay: true },
       { x: 21975, y: 1780, width: 420, height: 32 },
+      { x: 22550, y: 1810, width: 220, height: 24, isOneWay: true },
       { x: 22950, y: 1890, width: 360, height: 28, isOneWay: true },
+      { x: 23450, y: 1800, width: 220, height: 24, isOneWay: true },
       { x: 23850, y: 1750, width: 440, height: 34 },
+      { x: 24350, y: 1810, width: 240, height: 24, isOneWay: true },
       { x: 24825, y: 1880, width: 380, height: 28, isOneWay: true },
 
       // REGIÃO 5: CAVALGADA DE PEDRO (27000 a 33750)
       { x: 27900, y: 1900, width: 380, height: 28, isOneWay: true },
+      { x: 28400, y: 1830, width: 240, height: 24, isOneWay: true },
       { x: 28800, y: 1760, width: 460, height: 34 },
+      { x: 29350, y: 1810, width: 240, height: 24, isOneWay: true },
       { x: 29850, y: 1890, width: 400, height: 28, isOneWay: true },
+      { x: 30350, y: 1800, width: 240, height: 24, isOneWay: true },
       { x: 30825, y: 1740, width: 480, height: 34 },
+      { x: 31350, y: 1810, width: 240, height: 24, isOneWay: true },
       { x: 31725, y: 1880, width: 380, height: 28, isOneWay: true },
 
       // REGIÃO 6: FLORESTA ENCANTADA & TRILHOS (33750 a 40500)
       { x: 34650, y: 1900, width: 340, height: 28, isOneWay: true },
+      { x: 35150, y: 1830, width: 220, height: 24, isOneWay: true },
       { x: 35475, y: 1760, width: 440, height: 32 },
+      { x: 36000, y: 1810, width: 230, height: 24, isOneWay: true },
       { x: 36450, y: 1880, width: 360, height: 28, isOneWay: true },
+      { x: 36900, y: 1800, width: 230, height: 24, isOneWay: true },
       { x: 37350, y: 1740, width: 460, height: 34 },
+      { x: 37850, y: 1810, width: 240, height: 24, isOneWay: true },
       { x: 38325, y: 1870, width: 380, height: 28, isOneWay: true },
 
       // REGIÃO 7: GRANDE BAILE REAL DE MARIA ROSA (40500 a 47250)
       { x: 41400, y: 1890, width: 360, height: 28, isOneWay: true },
+      { x: 41900, y: 1820, width: 230, height: 24, isOneWay: true },
       { x: 42300, y: 1750, width: 460, height: 34 },
+      { x: 42850, y: 1800, width: 230, height: 24, isOneWay: true },
       { x: 43275, y: 1870, width: 380, height: 28, isOneWay: true },
+      { x: 43700, y: 1790, width: 230, height: 24, isOneWay: true },
       { x: 44175, y: 1730, width: 480, height: 34 },
+      { x: 44650, y: 1790, width: 240, height: 24, isOneWay: true },
       { x: 45150, y: 1860, width: 380, height: 28, isOneWay: true },
 
       // REGIÃO 8: PÁTIO IMPERIAL DA SAGRADA FAMÍLIA (47250 a 55000)
       { x: 48150, y: 1820, width: 520, height: 32 },
+      { x: 48750, y: 1760, width: 260, height: 24, isOneWay: true },
       { x: 49200, y: 1950, width: 220, height: 20, isOneWay: true },
+      { x: 49450, y: 1810, width: 220, height: 24, isOneWay: true },
       { x: 49800, y: 1650, width: 600, height: 32 },
+      { x: 50500, y: 1730, width: 250, height: 24, isOneWay: true },
       { x: 51000, y: 1780, width: 240, height: 20, isOneWay: true },
+      { x: 51300, y: 1630, width: 240, height: 24, isOneWay: true },
       { x: 51600, y: 1500, width: 680, height: 34 },
+      { x: 52400, y: 1430, width: 260, height: 24, isOneWay: true },
       { x: 52800, y: 1350, width: 2200, height: 1450 } // Altar Supremo
     ];
     return list;
