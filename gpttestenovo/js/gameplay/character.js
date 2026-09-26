@@ -96,6 +96,8 @@ class GrisIndividualCharacter {
       this.height = 122;
       this.maxSpeed = 310;
     }
+    // Apply once per individual, including the carriage and Pedro's horse.
+    this.maxSpeed *= 1.3;
   }
 
   loadSprites() {
@@ -230,7 +232,9 @@ class GrisIndividualCharacter {
   }
 
   draw(ctx, time, isBW = false) {
+    if (this.entryAlpha === 0) return;
     ctx.save();
+    ctx.globalAlpha *= this.entryAlpha ?? 1;
     const drawX = Math.round(this.x);
     const drawY = Math.round(this.y);
     const centerX = drawX + this.width / 2;
@@ -257,7 +261,7 @@ class GrisIndividualCharacter {
       for (let i = 1; i < this.trailPoints.length; i++) {
         ctx.lineTo(this.trailPoints[i].x, this.trailPoints[i].y);
       }
-      ctx.globalAlpha = 0.22;
+      ctx.globalAlpha *= 0.22;
       ctx.stroke();
       ctx.restore();
     }
@@ -575,11 +579,12 @@ class GrisCharacter {
         }
 
         const prevCompY = comp.y;
-        comp.vy += 1450 * dt;
-        comp.vy = Math.min(950, comp.vy);
+        const physics = window.gameEngine?.physics;
+        comp.vy += (physics?.gravity || 2088) * dt;
+        comp.vy = Math.min(physics?.maxFallSpeed || 1140, comp.vy);
 
         if (leader.isJumping && comp.onGround && leader.vy < -250 && comp.jumpCooldown <= 0) {
-          comp.vy = -720;
+          comp.vy = -720 * (physics?.jumpTempo || 1.2);
           comp.onGround = false;
           comp.isJumping = true;
           comp.jumpCooldown = 0.35;

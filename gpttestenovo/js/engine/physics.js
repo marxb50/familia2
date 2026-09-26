@@ -6,16 +6,19 @@
  */
 class PhysicsEngine {
   constructor() {
-    this.gravity = 1450;             // Gravidade padrão balanceada (px/s²)
-    this.glideGravity = 280;          // Gravidade ao planar com Maria Rosa
-    this.maxFallSpeed = 950;          // Velocidade terminal de queda padrão
-    this.maxGlideSpeed = 220;         // Velocidade terminal suave ao planar
-    this.slamSpeed = 1600;            // Velocidade em Heavy Slam
+    // 20% faster jump tempo: scale velocity by 1.2 and gravity by 1.2².
+    // This shortens the flight without shrinking the established jump height.
+    this.jumpTempo = 1.2;
+    this.gravity = 1450 * this.jumpTempo ** 2;
+    this.glideGravity = 280 * this.jumpTempo ** 2;
+    this.maxFallSpeed = 950 * this.jumpTempo;
+    this.maxGlideSpeed = 220 * this.jumpTempo;
+    this.slamSpeed = 1600 * this.jumpTempo;
     this.groundFriction = 0.82;       // Fricção natural ao parar
     this.airDrag = 0.94;              // Resistência no ar
 
-    this.jumpForce = -780;            // Força de pulo generosa e gostosa de jogar
-    this.doubleJumpForce = -680;      // Salto duplo aquarela robusto
+    this.jumpForce = -780 * this.jumpTempo;
+    this.doubleJumpForce = -680 * this.jumpTempo;
 
     this.coyoteTimeMax = 0.18;        // 180ms generosos de tolerância após sair da plataforma
   }
@@ -62,7 +65,7 @@ class PhysicsEngine {
 
     // 3. Mecânica de Pulo, Salto Duplo & Pulo na Parede (Wall Jump)
     const jumpRequested = input.consumeJump();
-    const baseJump = entity.jumpForceOverride || this.jumpForce;
+    const baseJump = entity.jumpForceOverride ? entity.jumpForceOverride * this.jumpTempo : this.jumpForce;
     const activeJumpForce = -Math.abs(baseJump);
 
     if (jumpRequested) {
@@ -106,7 +109,7 @@ class PhysicsEngine {
 
     // Corte de pulo suave (apenas quando o jogador solta o botão de pulo voluntariamente)
     if (input.consumeJumpRelease()) {
-      if (entity.vy < -250) {
+      if (entity.vy < -250 * this.jumpTempo) {
         entity.vy *= 0.52;
       }
     }
@@ -188,7 +191,7 @@ class PhysicsEngine {
     } else if (entity.isGliding) {
       activeGravity = this.glideGravity;
       terminalVel = this.maxGlideSpeed;
-    } else if (Math.abs(entity.vy) < 80 && !entity.onGround) {
+    } else if (Math.abs(entity.vy) < 80 * this.jumpTempo && !entity.onGround) {
       // Ápice do pulo: leveza poética
       activeGravity = this.gravity * 0.45;
     }
@@ -441,7 +444,7 @@ class PhysicsEngine {
     // 1. Cogumelo Elástico / Copa de Árvore Flexível (Verde / Gris)
     if (platform.isBouncy) {
       const rawForce = platform.bounceForce || -840;
-      const bForce = -Math.min(880, Math.max(700, Math.abs(rawForce)));
+      const bForce = -Math.min(880, Math.max(700, Math.abs(rawForce))) * this.jumpTempo;
       entity.vy = bForce;
       entity.onGround = false;
       entity.isJumping = true;

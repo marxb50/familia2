@@ -13,8 +13,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;800;900&family=Comfortaa:wght@300;400;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/gris_style.css?v=21.0">
-  <link rel="stylesheet" href="css/storybook.css?v=21.0">
+  <link rel="stylesheet" href="css/gris_style.css?v=22.0">
+  <link rel="stylesheet" href="css/storybook.css?v=22.0">
 </head>
 <body>
 
@@ -41,17 +41,18 @@
       <p id="chapter-subtitle" class="chapter-subtitle-text">Em meio às ruínas do silêncio, a busca pelo amor recomeça.</p>
     </section>
 
-    <!-- Encerramento completo do Ato VIII: a família chega junta ao altar. -->
+    <!-- Dois encerramentos do Ato VIII, após a travessia do arco-íris. -->
     <section id="ending-screen" aria-live="polite">
       <div class="ending-card">
-        <div class="ending-kicker">FINAL • O CASTELO DO CORAÇÃO</div>
-        <h1>Todos correram juntos.</h1>
-        <p>
+        <div class="ending-rainbow" aria-hidden="true"></div>
+        <div class="ending-kicker" id="ending-kicker">FINAL • O CASTELO DO CORAÇÃO</div>
+        <h1 id="ending-title">Todos correram juntos.</h1>
+        <p id="ending-text">
           Azul, vermelho, verde, rosa e dourado agora vivem no mesmo castelo.
           Uma família nasce do amor, do cuidado e do afeto — e nenhum caminho
           precisa ser percorrido sozinho.
         </p>
-        <div class="ending-actions"><a class="start-btn" href="?v=art21">Jogar novamente</a></div>
+        <div class="ending-actions"><a class="start-btn" href="?v=rainbow22">Jogar novamente</a><a class="start-btn ending-other" href="?act=8&v=rainbow22">Explorar o outro caminho</a></div>
         <div class="ending-seal">AMOR&nbsp;&nbsp;•&nbsp;&nbsp;CUIDADO&nbsp;&nbsp;•&nbsp;&nbsp;ADOÇÃO</div>
       </div>
     </section>
@@ -150,19 +151,19 @@
   </main>
 
   <!-- Scripts Modulares do Jogo -->
-  <script src="js/engine/input.js?v=21.0"></script>
-  <script src="js/engine/camera.js?v=21.0"></script>
-  <script src="js/engine/physics.js?v=21.0"></script>
-  <script src="js/engine/particles.js?v=21.0"></script>
-  <script src="js/engine/audio.js?v=21.0"></script>
-  <script src="js/engine/watercolor_postprocess.js?v=21.0"></script>
-  <script src="js/engine/art_direction.js?v=21.0"></script>
-  <script src="js/engine/renderer.js?v=21.0"></script>
-  <script src="js/gameplay/npcs.js?v=21.0"></script>
-  <script src="js/gameplay/puzzles.js?v=21.0"></script>
-  <script src="js/gameplay/character.js?v=21.0"></script>
-  <script src="js/gameplay/world.js?v=21.0"></script>
-  <script src="js/gameplay/levels.js?v=21.0"></script>
-  <script src="js/main.js?v=21.0"></script>
+  <script src="js/engine/input.js?v=22.0"></script>
+  <script src="js/engine/camera.js?v=22.0"></script>
+  <script src="js/engine/physics.js?v=22.0"></script>
+  <script src="js/engine/particles.js?v=22.0"></script>
+  <script src="js/engine/audio.js?v=22.0"></script>
+  <script src="js/engine/watercolor_postprocess.js?v=22.0"></script>
+  <script src="js/engine/art_direction.js?v=22.0"></script>
+  <script src="js/engine/renderer.js?v=22.0"></script>
+  <script src="js/gameplay/npcs.js?v=22.0"></script>
+  <script src="js/gameplay/puzzles.js?v=22.0"></script>
+  <script src="js/gameplay/character.js?v=22.0"></script>
+  <script src="js/gameplay/world.js?v=22.0"></script>
+  <script src="js/gameplay/levels.js?v=22.0"></script>
+  <script src="js/main.js?v=22.0"></script>
 </body>
 </html>

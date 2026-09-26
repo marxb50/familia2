@@ -48,6 +48,7 @@ class WorldRenderer {
   draw(ctx, camBounds, pal, time) {
     // 1. Desenhar Plataformas e Arquitetura Monumental Texturizada
     this.drawArchitecture(ctx, camBounds, pal, time);
+    window.gameEngine?.renderer.art.drawFinalPortals(ctx, camBounds, time);
 
     // 2. Desenhar Personagem Ativo
     if (this.character) {

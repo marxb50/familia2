@@ -110,7 +110,7 @@ class LevelDesignManager {
         minX: 47250,
         maxX: 55000,
         title: "Ato VIII • A Sagrada Família: O Poder da Adoção",
-        subtitle: "Cinco corações, um só caminho. Corra com toda a família até o altar e celebre o amor que os reuniu!",
+        subtitle: "Cinco corações, dois destinos. Atravesse o arco-íris do jardim ou suba até o arco das nuvens com toda a família!",
         characterType: "family_swap",
         colorKey: "gold",
         bgKey: "bg8",
@@ -123,6 +123,11 @@ class LevelDesignManager {
 
     // Limites Globais do Mundo Contínuo Expandido (56.000px)
     this.worldBounds = { x: 0, y: 0, width: 56000, height: 2600 };
+    // Shared coordinates for rendering, physical arrival and the ending scene.
+    this.finalPortals = [
+      { route: 'garden', x: 54380, floorY: 2050, label: 'O jardim do amanhã' },
+      { route: 'sky', x: 54380, floorY: 1350, label: 'Além do arco-íris' }
+    ];
 
     // Todas as Plataformas do Mundo Integradas em Piso Contínuo
     this.platforms = this.generateContinuousPlatforms();
@@ -221,7 +226,8 @@ class LevelDesignManager {
       { x: 51300, y: 1630, width: 240, height: 24, isOneWay: true },
       { x: 51600, y: 1500, width: 680, height: 34 },
       { x: 52400, y: 1430, width: 260, height: 24, isOneWay: true },
-      { x: 52800, y: 1350, width: 2200, height: 1450 } // Altar Supremo
+      // An open, raised terrace, not a wall: both endings remain accessible.
+      { x: 52800, y: 1350, width: 2200, height: 32, isOneWay: true }
     ];
     return list;
   }

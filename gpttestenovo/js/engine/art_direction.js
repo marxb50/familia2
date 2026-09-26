@@ -176,6 +176,94 @@ class StorybookArt {
     }
   }
 
+  drawFinalPortals(ctx, bounds, time) {
+    const engine = window.gameEngine;
+    const colors = ['#ee967e', '#eebb79', '#f4d896', '#a4c7a0', '#8bbcd5', '#aaa2d2', '#d4a9c8'];
+    for (const p of engine?.levels.finalPortals || []) {
+      if (p.x + 410 < bounds.left || p.x - 560 > bounds.right || p.floorY < bounds.top || p.floorY - 420 > bounds.bottom) continue;
+      const sky = p.route === 'sky';
+      const y = p.floorY;
+      ctx.save();
+      const halo = ctx.createRadialGradient(p.x, y - 160, 35, p.x, y - 160, 340);
+      halo.addColorStop(0, sky ? '#e1f2ff85' : '#fff0bf85');
+      halo.addColorStop(0.55, '#fff3d525'); halo.addColorStop(1, 'transparent');
+      ctx.fillStyle = halo; ctx.fillRect(p.x - 340, y - 500, 680, 680);
+      if (sky) {
+        // Clouds cradle the upper terrace, without covering its landing edge.
+        ctx.fillStyle = '#dce9ee'; ctx.globalAlpha = 0.55;
+        for (let i = 0; i < 9; i++) {
+          ctx.beginPath(); ctx.ellipse(p.x - 230 + i * 60, y + 48 + Math.sin(i * 2) * 16, 74, 25, 0, 0, Math.PI * 2); ctx.fill();
+        }
+      } else {
+        // A small flowering garden frames the lower entrance.
+        for (let side of [-1, 1]) {
+          ctx.strokeStyle = '#709785'; ctx.lineWidth = 3; ctx.globalAlpha = 0.8;
+          for (let i = 0; i < 9; i++) {
+            const x = p.x + side * (185 + i * 19);
+            const stem = 32 + (i * 17 % 53);
+            ctx.beginPath(); ctx.moveTo(x, y); ctx.quadraticCurveTo(x + side * 9, y - stem * 0.6, x, y - stem); ctx.stroke();
+            ctx.fillStyle = colors[i % colors.length];
+            for (let n = 0; n < 5; n++) {
+              const a = n * Math.PI * 2 / 5;
+              ctx.beginPath(); ctx.ellipse(x + Math.cos(a) * 6, y - stem + Math.sin(a) * 6, 5, 3, a, 0, Math.PI * 2); ctx.fill();
+            }
+            ctx.fillStyle = '#f5dda2'; ctx.beginPath(); ctx.arc(x, y - stem, 3, 0, Math.PI * 2); ctx.fill();
+          }
+        }
+      }
+      ctx.globalAlpha = 1;
+      const door = ctx.createLinearGradient(p.x, y - 310, p.x, y);
+      door.addColorStop(0, sky ? '#a4c9e5' : '#f7d4a5');
+      door.addColorStop(0.55, '#fff3d9');
+      door.addColorStop(1, sky ? '#dbe4f2' : '#a4c3a1');
+      ctx.fillStyle = door;
+      ctx.beginPath(); ctx.roundRect(p.x - 105, y - 290, 210, 290, [105, 105, 0, 0]); ctx.fill();
+      // The opening contains a living destination rather than a black dead end.
+      ctx.save(); ctx.clip();
+      if (sky) {
+        ctx.fillStyle = '#fffaf0cc';
+        for (let i = 0; i < 6; i++) {
+          ctx.beginPath(); ctx.ellipse(p.x - 140 + i * 62, y - 85 + Math.sin(i * 2 + time * 0.3) * 12, 64, 27, 0, 0, Math.PI * 2); ctx.fill();
+        }
+      } else {
+        ctx.fillStyle = '#90b49480';
+        ctx.beginPath(); ctx.ellipse(p.x - 40, y + 55, 160, 125, -0.2, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#719d9270';
+        ctx.beginPath(); ctx.ellipse(p.x + 95, y + 70, 140, 115, 0.2, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.restore();
+      ctx.lineWidth = 11; ctx.lineCap = 'round';
+      for (let i = 0; i < colors.length; i++) {
+        const radius = 151 - i * 7;
+        ctx.strokeStyle = colors[i];
+        ctx.beginPath(); ctx.moveTo(p.x - radius, y - 4); ctx.lineTo(p.x - radius, y - 155);
+        ctx.arc(p.x, y - 155, radius, Math.PI, Math.PI * 2);
+        ctx.lineTo(p.x + radius, y - 4); ctx.stroke();
+      }
+      ctx.fillStyle = '#f5dfae';
+      for (let side of [-1, 1]) {
+        ctx.beginPath(); ctx.roundRect(p.x + side * 145 - 22, y - 15, 44, 15, 4); ctx.fill();
+      }
+      // Small sparkles drift into the opening; deterministic and bounded.
+      for (let i = 0; i < 14; i++) {
+        const a = i * 2.4 + time * 0.28;
+        const x = p.x + Math.cos(a) * (125 + i % 3 * 15);
+        const sy = y - 160 + Math.sin(a) * 150;
+        ctx.globalAlpha = 0.35 + (Math.sin(time * 2 + i) + 1) * 0.25;
+        ctx.fillStyle = '#fff9df'; ctx.beginPath();
+        ctx.moveTo(x, sy - 5); ctx.lineTo(x + 2, sy); ctx.lineTo(x, sy + 5); ctx.lineTo(x - 2, sy); ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = '#142c3ac9';
+      ctx.beginPath(); ctx.roundRect(p.x - 195, y + 68, 390, 58, 12); ctx.fill();
+      ctx.textAlign = 'center'; ctx.fillStyle = '#fff0cd';
+      ctx.font = '22px "Comfortaa", sans-serif'; ctx.fillText(p.label, p.x, y + 94);
+      ctx.font = '12px "Comfortaa", sans-serif'; ctx.fillStyle = '#dedbbf';
+      ctx.fillText(sky ? 'FINAL II · O CAMINHO DAS NUVENS' : 'FINAL I · O CAMINHO DO JARDIM', p.x, y + 114);
+      ctx.restore();
+    }
+  }
+
   drawAtmosphere(ctx, camera, time, index) {
     const t = this.theme(index);
     const monochrome = index === 0 || (index === 2 && !window.gameEngine?.renderer.matheusColorProgress);

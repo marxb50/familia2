@@ -107,6 +107,9 @@ class GrisGameEngine {
     if (!region) return;
     this.finalSequenceStarted = false;
     document.getElementById('ending-screen')?.classList.remove('visible');
+    this.finalRoute = null;
+    this.finalElapsed = 0;
+    this.finalComplete = false;
 
     this.levels.currentRegionIndex = chapterIndex;
 
@@ -276,35 +279,77 @@ class GrisGameEngine {
 
   }
 
-  startFinalSequence() {
+  startFinalSequence(portal) {
     if (this.finalSequenceStarted) return;
     this.finalSequenceStarted = true;
+    this.finalPortal = portal;
+    this.finalRoute = portal.route;
+    this.finalElapsed = 0;
+    this.finalComplete = false;
+    this.finalSparkTimer = 0;
     this.subtitlePages = [];
     document.getElementById('cinematic-subtitles-container')?.classList.add('hidden');
     document.getElementById('chapter-title-screen')?.classList.remove('visible');
-
-    // Congelar somente quando a família já chegou junta ao altar.
-    this.character.vx = 0;
-    this.character.vy = 0;
-    this.character.isJumping = false;
-    if (this.character.familyParty) {
-      for (const member of this.character.familyParty) {
-        member.vx = 0;
-        member.vy = 0;
-        member.isJumping = false;
-      }
+    this.input.keys = {};
+    this.input.axisX = 0;
+    this.input.jumpBufferTimer = 0;
+    this.audio.stopNarration();
+    for (const member of this.character.familyParty) {
+      member.portalEntryTime = 0;
+      member.entryAlpha = 1;
+      member.vy = 0;
+      member.isJumping = false;
+      member.isGliding = false;
     }
+    const sky = portal.route === 'sky';
+    const screen = document.getElementById('ending-screen');
+    screen.dataset.route = portal.route;
+    document.getElementById('ending-kicker').textContent = sky ? 'FINAL II • O CAMINHO DAS NUVENS' : 'FINAL I • O CAMINHO DO JARDIM';
+    document.getElementById('ending-title').textContent = portal.label;
+    document.getElementById('ending-text').textContent = sky
+      ? 'Juntos, os cinco atravessaram o arco-íris e levaram as cores de Franklândia para além das nuvens. Onde havia silêncio, nasceram novas histórias. Nenhum sonho é alto demais quando se tem uma família ao lado.'
+      : 'Juntos, os cinco atravessaram o arco-íris e encontraram um jardim cheio de vida. Matheus pintou novos sonhos, Pedro abriu caminhos e Maria Rosa fez as flores cantarem. O rei e a rainha descobriram seu verdadeiro castelo: a família.';
+    this.renderer.triggerColorBloom(portal.x, portal.floorY - 160, sky ? '#b8dcff' : '#ffd166');
+  }
 
-    document.getElementById('ending-screen')?.classList.add('visible');
-
-    const colors = ['#3a86ff', '#e63946', '#2a9d8f', '#ff70a6', '#ffd166'];
-    colors.forEach((color, index) => {
-      this.particles.spawnWatercolorBlobs(53500 + index * 70, 1530 - index * 18, color, 22);
-      this.particles.spawnPetals(53500 + index * 70, 1500 - index * 18, 10, color);
-    });
-    this.renderer.triggerColorBloom(53550, 1480, '#ffd166');
-    this.camera.triggerShake(12);
-    this.audio.playNarration('assets/audio/victory_narration.mp3');
+  updateFinalSequence(dt) {
+    this.particles.update(dt);
+    if (this.finalComplete) return;
+    this.finalElapsed += dt;
+    const p = this.finalPortal;
+    // Every family member walks into the same arch, then dissolves into its light.
+    for (const member of this.character.familyParty) {
+      const targetX = p.x + 24 - member.width / 2;
+      const remaining = targetX - member.x;
+      member.vx = remaining > 1 ? this.character.maxSpeed * 0.9 : 0;
+      member.x += Math.min(Math.max(0, remaining), member.vx * dt);
+      member.y += (p.floorY - member.height - member.y) * (1 - Math.exp(-9 * dt));
+      member.onGround = true;
+      member.facing = 1;
+      if (member.x + member.width / 2 >= p.x - 12) {
+        member.portalEntryTime += dt;
+        member.entryAlpha = Math.max(0, 1 - member.portalEntryTime / 0.65);
+      }
+      member.update(dt, this.particles, this.audio);
+    }
+    const blend = 1 - Math.exp(-3 * dt);
+    this.camera.x += (p.x - 180 - this.camera.x) * blend;
+    this.camera.y += (p.floorY - 250 - this.camera.y) * blend;
+    this.camera.zoom += (1 - this.camera.zoom) * blend;
+    this.finalSparkTimer += dt;
+    if (this.finalSparkTimer >= 0.14) {
+      this.finalSparkTimer = 0;
+      const colors = ['#3a86ff', '#e63946', '#2a9d8f', '#ff70a6', '#ffd166'];
+      const color = colors[Math.floor(this.finalElapsed * 7) % colors.length];
+      this.particles.spawnPetals(p.x, p.floorY - 180, 3, color);
+    }
+    if (this.finalElapsed >= 4.2 && this.character.familyParty.every(m => m.entryAlpha === 0)) {
+      this.finalComplete = true;
+      for (const member of this.character.familyParty) member.vx = 0;
+      document.getElementById('ending-screen')?.classList.add('visible');
+      this.audio.playNarration('assets/audio/victory_narration.mp3');
+      this.updateHUD();
+    }
   }
 
   // Despertar de Cor (Beacons Mágicos - Sem Corte! O jogador continua andando)
@@ -360,7 +405,7 @@ class GrisGameEngine {
     const index = this.levels.currentRegionIndex;
     document.getElementById('journey-act').textContent = `ATO ${index + 1} / VIII`;
     document.getElementById('journey-name').textContent = this.renderer.art.theme(index).name;
-    const progress = Math.max(0, Math.min(1, (this.character.x - region.minX) / (region.maxX - region.minX)));
+    const progress = this.finalComplete ? 1 : Math.max(0, Math.min(1, (this.character.x - region.minX) / (region.maxX - region.minX)));
     document.getElementById('journey-progress').style.transform = `scaleX(${progress})`;
     // Estrelas de memória coletadas
     const countEl = document.getElementById('hud-stars-count');
@@ -382,7 +427,7 @@ class GrisGameEngine {
 
     if (hintEl && avatarEl) {
       if (this.character.mode === 'family_swap') {
-        hintEl.textContent = 'A família inteira corre junta • O amor chegou ao altar final';
+        hintEl.textContent = 'A família corre junta • Dois arcos-íris: jardim embaixo, nuvens em cima';
         avatarEl.src = 'assets/images/characters/children_trio.png';
       } else if (charType === 'carriage') {
         hintEl.textContent = 'Rei & Rainha na Carruagem Real • Rumo ao Vilarejo para Acolher Matheus Bebê!';
@@ -484,7 +529,7 @@ class GrisGameEngine {
   update(dt) {
     if (this.menuOpen || this.paused || this.loadingArt) return;
     if (this.finalSequenceStarted) {
-      this.particles.update(dt);
+      this.updateFinalSequence(dt);
       return;
     }
     this.updateSubtitles(dt);
@@ -522,20 +567,12 @@ class GrisGameEngine {
     // 6. Verificar Progressão Contínua de Região (Estilo Metroid)
     this.checkRegionProgression();
 
-    // Final do Ato VIII: encontro da família no altar supremo.
-    if (this.levels.currentRegionIndex === 7 && this.character.x > 52650) {
-      this.startFinalSequence();
-    }
-
-    if (this.finalSequenceStarted) {
-      this.character.vx = 0;
-      this.character.vy = 0;
-      if (this.character.familyParty) {
-        for (const member of this.character.familyParty) {
-          member.vx = 0;
-          member.vy = 0;
-        }
-      }
+    // Ending choice is physical: arrive on the ground or on the upper terrace.
+    if (this.levels.currentRegionIndex === 7 && this.character.onGround) {
+      const centerX = this.character.x + this.character.width / 2;
+      const footY = this.character.y + this.character.height;
+      const portal = this.levels.finalPortals.find(p => centerX >= p.x - 150 && centerX <= p.x + 130 && Math.abs(footY - p.floorY) < 18);
+      if (portal) { this.startFinalSequence(portal); return; }
     }
 
     // 7. Atualizar Sistema Global de Partículas

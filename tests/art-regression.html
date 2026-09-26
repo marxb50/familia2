@@ -1,11 +1,19 @@
-<!doctype html><html><meta charset="utf-8"><title>Art edition regression checks</title>
-<style>body{background:#142a32;color:#f5e6bd;font:14px monospace}iframe{width:844px;height:390px;border:0}pre{white-space:pre-wrap}button{padding:10px}</style>
-<button id="run">Run regression checks</button><pre id="results">Ready</pre>
+<!doctype html><html lang="pt-BR"><meta charset="utf-8"><title>Regressão artística e dois finais</title>
+<style>body{background:#142a32;color:#f5e6bd;font:14px monospace}iframe{width:844px;height:390px;border:0;display:block}pre{white-space:pre-wrap;max-height:160px;overflow:auto}button{padding:10px}</style>
+<button id="run">Executar regressão</button><pre id="results">Pronto</pre>
 <button id="gallery">Visualizar os oito atos</button><div id="gallery-images" style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px"></div>
-<iframe id="game" src="../gpttestenovo/?act=1&v=art21"></iframe>
+<button id="garden-view">Ver entrada do jardim</button><button id="sky-view">Ver entrada das nuvens</button><button id="advance">Avançar cena um segundo</button>
+<iframe id="game" src="../gpttestenovo/?act=1&v=rainbow22"></iframe>
 <script>
 const frame=document.getElementById('game'),out=document.getElementById('results');
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+for (const route of ['garden','sky']) document.getElementById(route+'-view').onclick=async()=>{
+  const g=frame.contentWindow.gameEngine;g.running=false;await sleep(100);g.audio.stopNarration();g.audio.playNarration=()=>{};g.paused=false;g.menuOpen=false;g.loadingArt=false;g.loadChapter(7);g.input.keys={};
+  const p=g.levels.finalPortals.find(p=>p.route===route);
+  g.character.familyParty.forEach((m,i)=>{m.x=p.x-540-i*112;m.y=p.floorY-m.height;m.vx=0;m.vy=0;m.onGround=true;});
+  g.camera.x=p.x-300;g.camera.y=p.floorY-300;g.camera.zoom=1;g.render(performance.now());
+};
+document.getElementById('advance').onclick=()=>{const g=frame.contentWindow.gameEngine;g.input.keys={KeyD:true};for(let n=0;n<60;n++)g.update(1/60);g.render(performance.now());};
 document.getElementById('gallery').onclick=async()=>{
   const g=frame.contentWindow.gameEngine;g.running=false;await sleep(100);g.audio.stopNarration();g.audio.playNarration=()=>{};g.menuOpen=false;g.loadingArt=false;g.paused=false;
   const target=document.getElementById('gallery-images');target.replaceChildren();
@@ -27,6 +35,20 @@ document.getElementById('run').onclick=async()=>{
     g.setPaused(false);g.menuOpen=false;g.loadingArt=false;
     await Promise.all(Object.values(g.renderer.bgImages).map(i=>i.decode().catch(()=>{})));
     const step=n=>{for(let i=0;i<n;i++)g.update(1/60)};
+    const defaults={king:310,queen:310,matheus:340,pedro:360,maria_rosa:310,pedro_horse:390,carriage:380};
+    for(const [type,speed] of Object.entries(defaults)){const c=new win.GrisIndividualCharacter(type,200,1900);check(type+' speed +30%',Math.abs(c.maxSpeed-speed*1.3)<.01,c.maxSpeed+' px/s');}
+    const jumpProfile=tempo=>{
+      const physics=new win.PhysicsEngine();physics.jumpTempo=tempo;physics.gravity=1450*tempo**2;physics.jumpForce=-780*tempo;physics.maxFallSpeed=950*tempo;
+      const c=new win.GrisIndividualCharacter('king',250,1925);c.onGround=true;
+      let requested=true,peak=c.y,flight=0;
+      const input={axisX:0,axisY:0,jumpHeld:false,consumeJump:()=>{const v=requested;requested=false;return v;},consumeJumpRelease:()=>false,consumeSlam:()=>false};
+      const floor=[{x:0,y:2050,width:2000,height:450}];
+      for(let i=0;i<600;i++){physics.updateEntity(c,input,floor,null,1/240);peak=Math.min(peak,c.y);flight+=(1/240);if(c.onGround)break;}
+      return {flight,height:1925-peak};
+    };
+    const oldJump=jumpProfile(1),fastJump=jumpProfile(1.2);
+    check('Jump tempo +20%',Math.abs(oldJump.flight/fastJump.flight-1.2)<.025,JSON.stringify({old:oldJump,now:fastJump}));
+    check('Jump height preserved',Math.abs(oldJump.height-fastJump.height)<3);
     for(let act=0;act<8;act++) {
       g.loadChapter(act);g.input.keys={};step(60);
       const x=g.character.x;
@@ -50,8 +72,50 @@ document.getElementById('run').onclick=async()=>{
     for(const b of g.puzzles.paintBrushes){g.character.x=b.x-g.character.width/2;g.character.y=b.y-g.character.height/2;g.puzzles.update(g.character,g.particles,g.audio,1/60);}
     check('Four brushes restore partial color',g.puzzles.paintBrushesCollected===4 && g.renderer.matheusColorProgress>0,JSON.stringify({brushes:g.puzzles.paintBrushesCollected,color:g.renderer.matheusColorProgress}));
     for(let i=0;i<7;i++){g.loadChapter(i);g.character.x=g.levels.regions[i].maxX+10;g.checkRegionProgression();check('Transition '+(i+1)+' to '+(i+2),g.levels.currentRegionIndex===i+1);}
-    g.loadChapter(7);g.character.x=52660;step(1);check('Final appears',g.finalSequenceStarted&&frame.contentDocument.getElementById('ending-screen').classList.contains('visible'));
+    const screen=frame.contentDocument.getElementById('ending-screen');
+    g.loadChapter(7);g.input.keys={KeyD:true};step(1400);
+    check('Entire lower route remains open',g.finalRoute==='garden'&&g.finalComplete);
+    check('No former altar wall',g.levels.platforms.find(p=>p.x===52800).isOneWay);
+    // Traverse the upper platform route from the real start, using only movement/jumps.
+    g.loadChapter(7);g.input.keys={};step(45);
+    const routeSteps=[{x:48400,y:1820},{x:48870,y:1760},{x:49560,y:1810},{x:50100,y:1650},{x:50620,y:1730},{x:51120,y:1780},{x:51420,y:1630},{x:51920,y:1500},{x:52520,y:1430},{x:53200,y:1350}];
+    const visited=[];
+    for(const target of routeSteps){
+      let landed=false;const trace=[];
+      for(let n=0;n<600;n++){
+        const dx=target.x-(g.character.x+g.character.width/2),feet=g.character.y+g.character.height;
+        if(n%60===0||(g.character.onGround&&n>45))trace.push({n,x:Math.round(g.character.x),foot:Math.round(feet),vy:Math.round(g.character.vy),ground:g.character.onGround});
+        // A collected memory star creates a real one-way step just above the stone.
+        if(g.character.onGround&&feet<=target.y+3&&feet>=target.y-80&&Math.abs(dx)<60){landed=true;break;}
+        g.input.keys=Math.abs(dx)>14?(dx>0?{KeyD:true}:{KeyA:true}):{};
+        if(g.character.onGround&&Math.abs(dx)<520&&Math.abs(feet-target.y)>18){g.input.jumpPressed=true;g.input.jumpBufferTimer=.22;}
+        else if(!g.character.onGround&&g.character.hasDoubleJump&&g.character.vy>-180&&(feet>target.y-30||Math.abs(dx)>220)){g.input.jumpPressed=true;g.input.jumpBufferTimer=.22;}
+        step(1);
+      }
+      visited.push({target:target.x,landed,x:Math.round(g.character.x),foot:Math.round(g.character.y+g.character.height),trace:landed?undefined:trace});
+      if(!landed)break;
+    }
+    check('Full upper platform route is playable',visited.length===routeSteps.length&&visited.every(s=>s.landed),JSON.stringify(visited));
+    g.loadChapter(7);g.character.x=52660;g.character.y=2050-g.character.height;g.character.onGround=true;g.input.keys={};step(1);
+    check('No premature ending at old wall',!g.finalSequenceStarted);
+    // Real jump from the last step onto the upper terrace, then walk into the arch.
+    g.character.familyParty.forEach((m,i)=>{m.x=52450-i*112;m.y=1430-m.height;m.vx=0;m.vy=0;m.onGround=true;});
+    g.input.keys={KeyD:true};g.input.jumpPressed=true;g.input.jumpBufferTimer=.22;step(16);
+    g.input.jumpPressed=true;g.input.jumpBufferTimer=.22;step(60);
+    check('Upper terrace reachable by jumping',g.character.x>=52800&&g.character.onGround&&Math.abs(g.character.y+g.character.height-1350)<2,JSON.stringify({x:g.character.x,foot:g.character.y+g.character.height}));
+    step(250);
+    check('Upper route selects cloud ending',g.finalRoute==='sky');
+    step(300);
+    check('Upper ending appears after entry',g.finalComplete&&screen.classList.contains('visible')&&screen.dataset.route==='sky');
+    check('All five enter the rainbow',g.character.familyParty.every(m=>m.entryAlpha===0));
+    const skyText=frame.contentDocument.getElementById('ending-text').textContent;
     const finalX=g.character.x;g.input.keys={KeyD:true};step(60);check('Ending freezes movement',g.character.x===finalX);
+    g.loadChapter(7);const p=g.levels.finalPortals[0];g.character.familyParty.forEach((m,i)=>{m.x=p.x-180-i*112;m.y=p.floorY-m.height;m.vx=0;m.vy=0;m.onGround=true;});g.input.keys={KeyD:true};step(10);
+    check('Ground selects garden ending',g.finalRoute==='garden');
+    check('Ending waits for family entry',!screen.classList.contains('visible'));
+    step(300);
+    check('Garden ending appears after entry',g.finalComplete&&screen.dataset.route==='garden');
+    check('Endings have different stories',frame.contentDocument.getElementById('ending-text').textContent!==skyText);
     // Leave a representative gameplay view for visual inspection.
     g.loadChapter(5);g.input.keys={};step(30);g.render(performance.now());
     out.dataset.complete='true';out.dataset.failures=results.filter(r=>!r.pass).length;
