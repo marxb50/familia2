@@ -277,10 +277,13 @@ class GrisGameEngine {
     }
 
     // Prisma de Cores do Coração
-    document.getElementById('prism-blue')?.classList.toggle('unlocked-blue', this.unlockedColors.blue);
-    document.getElementById('prism-red')?.classList.toggle('unlocked-red', this.unlockedColors.red);
-    document.getElementById('prism-green')?.classList.toggle('unlocked-green', this.unlockedColors.green);
-    document.getElementById('prism-gold')?.classList.toggle('unlocked-gold', this.unlockedColors.gold);
+    const activeColor = this.levels.regions[this.levels.currentRegionIndex]?.colorKey;
+    const prismColors = ['blue', 'red', 'green', 'gold'];
+    for (const color of prismColors) {
+      const prism = document.getElementById(`prism-${color}`);
+      prism?.classList.toggle(`unlocked-${color}`, this.unlockedColors[color]);
+      prism?.classList.toggle('active-prism', activeColor === color && this.unlockedColors[color]);
+    }
 
     // Dica de Personagem Ativo
     const charType = this.character?.type;

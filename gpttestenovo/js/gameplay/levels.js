@@ -237,13 +237,19 @@ class LevelDesignManager {
     ];
     stars.forEach(s => puzzleMgr.addMemoryStar(s.x, s.y, s.id));
 
-    // Tinta azul e pincéis mágicos do Matheus (Ato 3).
+    // Tinta azul e quatro pincéis mágicos do Matheus (Ato 3).
     // Os antigos pontos brilhantes desta região foram substituídos por estes
-    // dois itens; cada coleta revela apenas uma pequena parte das cores.
-    puzzleMgr.addPaintPool(15285, 1560, 360, 320, 'paint3_1');
-    puzzleMgr.addPaintPool(17145, 1540, 360, 320, 'paint3_2');
-    puzzleMgr.addPaintBrush(15375, 1680, 'brush3_1', 0.18);
-    puzzleMgr.addPaintBrush(17250, 1660, 'brush3_2', 0.18);
+    // itens; cada coleta revela uma pequena parte, deixando o fim mais vivo.
+    const matheusPaints = [
+      { poolX: 14520, poolY: 1560, brushX: 14610, brushY: 1680, id: 'brush3_1' },
+      { poolX: 15300, poolY: 1510, brushX: 15400, brushY: 1630, id: 'brush3_2' },
+      { poolX: 16620, poolY: 1530, brushX: 16720, brushY: 1650, id: 'brush3_3' },
+      { poolX: 17400, poolY: 1490, brushX: 17500, brushY: 1610, id: 'brush3_4' }
+    ];
+    matheusPaints.forEach((paint) => {
+      puzzleMgr.addPaintPool(paint.poolX, paint.poolY, 360, 320, `${paint.id}_pool`);
+      puzzleMgr.addPaintBrush(paint.brushX, paint.brushY, paint.id, 0.22);
+    });
 
     // Flores que Desabrocham (Ato 7 e 8)
     puzzleMgr.addBloomingFlower(42450, 1720, 180, 'fl7_1');

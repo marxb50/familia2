@@ -145,6 +145,7 @@ html, body {
 }
 
 .prism-orb {
+  display: none;
   width: 12px;
   height: 12px;
   border-radius: 50%;
@@ -154,8 +155,12 @@ html, body {
   position: relative;
 }
 
-/* As quatro cores ficam visíveis no topo desde o Ato I.
-   O brilho forte continua reservado ao despertar de cada ato. */
+/* O topo mostra somente a cor do ato atual. As outras entram quando a
+   narrativa chega ao respectivo capítulo. */
+.prism-orb.active-prism {
+  display: block;
+}
+
 #prism-blue {
   background: rgba(58, 134, 255, 0.38);
   border-color: rgba(128, 191, 255, 0.62);
