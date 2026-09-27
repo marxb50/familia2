@@ -79,6 +79,35 @@ kbd { font: inherit; border: 1px solid #adc0b870; border-radius: 3px; padding: 3
   .start-game-sub { margin-bottom: 12px; }
   .start-btn { padding: 10px 16px; }
 }
+
+/* On a phone held upright, keep the narration in the unused space outside
+   the 16:9 game window instead of covering the playable scene. */
+@media (orientation: portrait) and (max-width: 900px) {
+  #game-container { overflow: visible; }
+
+  #cinematic-subtitles-container {
+    position: fixed;
+    top: auto;
+    bottom: max(8px, env(safe-area-inset-bottom));
+    left: 50%;
+    width: min(94vw, 640px);
+    max-width: none;
+    padding: 8px 12px;
+    transform: translateX(-50%);
+    z-index: 100;
+  }
+
+  #cinematic-subtitles-container.hidden {
+    transform: translateX(-50%) translateY(14px);
+  }
+
+  #cinematic-subtitles-container .subtitles-content { gap: 10px; }
+  #cinematic-subtitles-container .subtitles-text {
+    font-size: clamp(13px, 3.8vw, 17px);
+    line-height: 1.25;
+  }
+}
+
 @media (max-height: 430px), (max-width: 600px) {
   .menu-description, .menu-caption, .pause-note { display: none; }
   .menu-controls { font-size: 8px; margin-top: 10px; }
