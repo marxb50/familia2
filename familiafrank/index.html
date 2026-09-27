@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0d0c0a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>O Castelo do Coração: Sinfonia das Cores</title>
+
+  <!-- Google Fonts: Cinzel & Comfortaa & Cormorant Garamond -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;800;900&family=Comfortaa:wght@300;400;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/gris_style.css?v=28.0">
+  <link rel="stylesheet" href="css/storybook.css?v=28.0">
+</head>
+<body>
+
+  <!-- Container de Cinema 16:9 -->
+  <main id="game-container">
+    <!-- Canvas de Renderização em Alta Resolução -->
+    <canvas id="viewport-canvas" width="1920" height="1080"></canvas>
+    <div id="loading-art" role="status">Preparando o reino…</div>
+
+    <!-- Textura de Papel de Aquarela -->
+    <div id="paper-overlay"></div>
+
+    <!-- Vinheta de Cinema -->
+    <div id="vignette-overlay"></div>
+
+    <!-- Letterbox Cinematográfico -->
+    <div class="letterbox-bar letterbox-top"></div>
+    <div class="letterbox-bar letterbox-bottom"></div>
+
+    <!-- Título Poético de Capítulo (Fade-in / Fade-out) -->
+    <section id="chapter-title-screen">
+      <div id="chapter-tag" class="chapter-number-tag">Capítulo I de V</div>
+      <h1 id="chapter-title" class="chapter-title-text">O Castelo Sem Cores</h1>
+      <p id="chapter-subtitle" class="chapter-subtitle-text">Em meio às ruínas do silêncio, a busca pelo amor recomeça.</p>
+    </section>
+
+    <!-- Dois encerramentos do Ato VIII, após a travessia do arco-íris. -->
+    <section id="ending-screen" aria-live="polite">
+      <div class="ending-card">
+        <div class="ending-rainbow" aria-hidden="true"></div>
+        <div class="ending-kicker" id="ending-kicker">FINAL • O CASTELO DO CORAÇÃO</div>
+        <h1 id="ending-title">Todos correram juntos.</h1>
+        <p id="ending-text">
+          Azul, vermelho, verde, rosa e dourado agora vivem no mesmo castelo.
+          Uma família nasce do amor, do cuidado e do afeto — e nenhum caminho
+          precisa ser percorrido sozinho.
+        </p>
+        <div class="ending-actions"><a class="start-btn" href="?v=familiafrank28">Jogar novamente</a><a class="start-btn ending-other" href="?act=8&v=familiafrank28">Explorar o outro caminho</a></div>
+        <div class="ending-seal">AMOR&nbsp;&nbsp;•&nbsp;&nbsp;CUIDADO&nbsp;&nbsp;•&nbsp;&nbsp;ADOÇÃO</div>
+      </div>
+    </section>
+
+    <!-- HUD Minimalista & Contemplativo -->
+    <header id="game-hud">
+      <div class="journey-location"><span id="journey-act">ATO I / VIII</span><span id="journey-name">O castelo silencioso</span><div class="journey-track"><i id="journey-progress"></i></div></div>
+      <div class="hud-top">
+        <!-- Estrelas de Memória Coletadas -->
+        <div class="hud-stars-container">
+          <svg class="hud-star-icon" viewBox="0 0 24 24" fill="#ffd166">
+            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+          </svg>
+          <span id="hud-stars-count" class="hud-stars-count">0 / 3</span>
+        </div>
+
+        <!-- Prisma das Cores do Amor (Gris Biomes) -->
+        <div class="hud-colors-prism" title="Prisma das Cores do Reino">
+          <div id="prism-blue" class="prism-orb" title="Azul da Imaginação (Príncipe Matheus)"></div>
+          <div id="prism-red" class="prism-orb" title="Vermelho da Coragem (Príncipe Pedro)"></div>
+          <div id="prism-green" class="prism-orb" title="Verde da Harmonia (Princesa Maria Rosa)"></div>
+          <div id="prism-pink" class="prism-orb" title="Rosa da Proteção (Princesa Maria Rosa)"></div>
+          <div id="prism-gold" class="prism-orb" title="Dourado da Plenitude (Adoção Plena)"></div>
+        </div>
+
+        <!-- Ações do Canto Superior Direito -->
+        <div class="hud-actions">
+          <button id="btn-pause" class="hud-btn" title="Pausar • Esc" aria-label="Pausar jogo">Ⅱ</button>
+          <button id="btn-toggle-sound" class="hud-btn" title="Ligar / Mutar Som">
+            <span id="sound-icon">🔊</span>
+          </button>
+          <button id="btn-toggle-fullscreen" class="hud-btn" title="Tela Cheia">
+            <span>⛶</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Dica de Personagem / Habilidade no Rodapé do HUD -->
+      <div class="hud-bottom" style="display: flex; justify-content: flex-start;">
+        <div class="hud-ability-hint">
+          <img id="hud-ability-avatar" src="assets/images/characters/king_idle.png" class="hud-ability-avatar" alt="Personagem">
+          <span id="hud-ability-text">Rei & Rainha • Em Busca de Amor e Família</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Controles Touch para Celular / Tablet -->
+    <nav id="mobile-touch-controls">
+      <div class="touch-cluster">
+        <button id="touch-left" class="touch-btn" aria-label="Mover para Esquerda">←</button>
+        <button id="touch-right" class="touch-btn" aria-label="Mover para Direita">→</button>
+      </div>
+
+      <div class="touch-cluster">
+        <button id="touch-swap" class="touch-btn" aria-label="Trocar Personagem">🔄</button>
+        <button id="touch-sing" class="touch-btn" aria-label="Cantar / Flor">🌸</button>
+        <button id="touch-action" class="touch-btn touch-btn-action" aria-label="Ação / Pincel / Slam">⚔️</button>
+        <button id="touch-jump" class="touch-btn touch-btn-action" aria-label="Pular / Planar">🕊️</button>
+      </div>
+    </nav>
+
+    <!-- Tela Inicial Contemplativa (Menu do Jogo) -->
+    <section id="start-overlay">
+      <div class="menu-art" aria-hidden="true"><img src="assets/images/characters/children_trio.png" alt=""></div>
+      <div class="menu-copy">
+        <p class="menu-eyebrow">UM CONTO JOGÁVEL · FRANKLÂNDIA</p>
+        <h1 class="start-game-title">O Castelo<br>do Coração</h1>
+        <h2 class="start-game-sub">Sinfonia das Cores</h2>
+        <p class="menu-description">Um reino à espera de cor.<br>Uma família que nasce do amor.</p>
+        <button id="btn-start-game" class="start-btn">Começar a jornada <span aria-hidden="true">→</span></button>
+        <p class="menu-caption">8 atos · 5 corações · uma história</p>
+        <div class="menu-controls"><span><kbd>A</kbd><kbd>D</kbd> mover</span><span><kbd>Espaço</kbd> saltar</span><span><kbd>Esc</kbd> pausa e ajuda</span></div>
+      </div>
+    </section>
+    <section id="pause-screen" hidden aria-label="Jogo pausado">
+      <div class="pause-card">
+        <p class="menu-eyebrow">RESPIRAR TAMBÉM FAZ PARTE DA JORNADA</p>
+        <h2>Um instante no reino.</h2>
+        <p>A / D ou setas: mover · Espaço / W: saltar<br>J: pintar pontes · K: cantar · S: golpe no ar<br>C: trocar a liderança do casal · Esc: continuar</p>
+        <p class="pause-note">Matheus tem salto duplo. Maria Rosa plana ao segurar Espaço.<br>O controle conectado também funciona: direcional e botão inferior para saltar.</p>
+        <button id="btn-resume" class="start-btn">Continuar →</button>
+      </div>
+    </section>
+
+    <!-- Legenda Cinematográfica In-Game (Não interrompe o jogo nem cobre o cenário) -->
+    <div id="cinematic-subtitles-container" class="cinematic-subtitles-bar hidden">
+      <div class="subtitles-content">
+        <div class="subtitles-voice-indicator">
+          <span class="sub-wave"></span>
+          <span class="sub-wave"></span>
+          <span class="sub-wave"></span>
+        </div>
+        <p id="subtitles-text" class="subtitles-text"></p>
+      </div>
+    </div>
+  </main>
+
+  <!-- Scripts Modulares do Jogo -->
+  <script src="js/engine/input.js?v=28.0"></script>
+  <script src="js/engine/camera.js?v=28.0"></script>
+  <script src="js/engine/physics.js?v=28.0"></script>
+  <script src="js/engine/particles.js?v=28.0"></script>
+  <script src="js/engine/audio.js?v=28.0"></script>
+  <script src="js/engine/watercolor_postprocess.js?v=28.0"></script>
+  <script src="js/engine/art_direction.js?v=28.0"></script>
+  <script src="js/engine/renderer.js?v=28.0"></script>
+  <script src="js/gameplay/npcs.js?v=28.0"></script>
+  <script src="js/gameplay/puzzles.js?v=28.0"></script>
+  <script src="js/gameplay/character.js?v=28.0"></script>
+  <script src="js/gameplay/world.js?v=28.0"></script>
+  <script src="js/gameplay/levels.js?v=28.0"></script>
+  <script src="js/main.js?v=28.0"></script>
+</body>
+</html>
