@@ -121,10 +121,11 @@ class LevelDesignManager {
       }
     ];
 
-    // Expand the playable length of every act by 30%. All horizontal world
-    // landmarks are derived from this factor below, while vertical gameplay
-    // and character physics stay unchanged.
-    this.actScale = 1.3;
+    // The previous 30% expansion was still short against the narration after
+    // the movement-speed boost. Use a narration-safe 2.1x layout scale so a
+    // player running continuously still has time to hear each act completely.
+    // Vertical gameplay and character physics stay unchanged.
+    this.actScale = 2.1;
     this.regions = this.regions.map((region) => ({
       ...region,
       minX: Math.round(region.minX * this.actScale),
@@ -132,7 +133,7 @@ class LevelDesignManager {
       playerStartX: Math.round(region.playerStartX * this.actScale),
     }));
 
-    // Limites Globais do Mundo Contínuo Expandido (72.800px)
+    // Limites Globais do Mundo Contínuo Expandido (117.600px)
     this.worldBounds = { x: 0, y: 0, width: Math.round(56000 * this.actScale), height: 2600 };
     // Shared coordinates for rendering, physical arrival and the ending scene.
     this.finalPortals = [
