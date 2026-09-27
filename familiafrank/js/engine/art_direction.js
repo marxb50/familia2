@@ -106,7 +106,8 @@ class StorybookArt {
     const engine = window.gameEngine;
     for (const p of platforms) {
       if (p.x > bounds.right + 90 || p.x + p.width < bounds.left - 90 || p.y > bounds.bottom + 80 || p.y + Math.max(p.height, 90) < bounds.top) continue;
-      const index = engine?.levels?.getRegionByX(Math.max(0, Math.min(54999, p.width > 10000 ? (bounds.left + bounds.right) / 2 : p.x))).index || 0;
+      const sampleX = p.width > 10000 ? (bounds.left + bounds.right) / 2 : p.x;
+      const index = engine?.levels?.getRegionByX(Math.max(0, sampleX)).index || 0;
       // The gray palette is prepared once. Filtering every fill/stroke here
       // repeatedly rasterized the entire castle floor, especially in Act I.
       const t = this.platformTheme(index, engine?.renderer.matheusColorProgress ?? 1);

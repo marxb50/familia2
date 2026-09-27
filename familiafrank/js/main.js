@@ -2,7 +2,7 @@
  * ==============================================================================
  * MAIN GAME COORDINATOR (O Castelo que Nasce do Coração: Metroid Contínuo)
  * - Zero cortes, zero telas de carregamento, zero teletransporte!
- * - Toda a jornada do Reino de Franklândia em um mapa horizontal contínuo (0 a 36.500px).
+ * - Toda a jornada do Reino de Franklândia em um mapa horizontal contínuo (0 a 72.800px).
  * - O Rei e a Rainha caminham juntos sem cair do cenário e com tethering seguro.
  * - Transições fluidas ao cruzar cada fronteira sem interrupção de gameplay.
  * ==============================================================================
@@ -56,7 +56,7 @@ class GrisGameEngine {
       console.error('GAME UNCAUGHT ERROR:', e.message, e.filename, e.lineno);
     });
 
-    // 1. Configurar Limites Globais do Mundo Contínuo Metroid (36.500px)
+    // 1. Configurar Limites Globais do Mundo Contínuo Metroid (72.800px)
     this.camera.setWorldBounds(
       this.levels.worldBounds.x,
       this.levels.worldBounds.y,

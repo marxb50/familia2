@@ -2,7 +2,7 @@
  * ==============================================================================
  * MUNDO CONTÍNUO METROIDVANIA (O Castelo que Nasce do Coração)
  * - Zero cortes, zero telas de carregamento, zero teletransporte!
- * - Toda a jornada do Reino de Franklândia em um mapa horizontal contínuo (0 a 36.500px).
+ * - Toda a jornada do Reino de Franklândia em um mapa horizontal contínuo (0 a 72.800px).
  * - O jogador caminha suavemente de um bioma/ato para o próximo:
  *   Castelo -> Estrada dos Girassóis -> Vilarejo -> Ateliê -> Colinas -> Pradaria -> Floresta -> Baile -> Pátio da Adoção.
  * ==============================================================================
@@ -121,12 +121,23 @@ class LevelDesignManager {
       }
     ];
 
-    // Limites Globais do Mundo Contínuo Expandido (56.000px)
-    this.worldBounds = { x: 0, y: 0, width: 56000, height: 2600 };
+    // Expand the playable length of every act by 30%. All horizontal world
+    // landmarks are derived from this factor below, while vertical gameplay
+    // and character physics stay unchanged.
+    this.actScale = 1.3;
+    this.regions = this.regions.map((region) => ({
+      ...region,
+      minX: Math.round(region.minX * this.actScale),
+      maxX: Math.round(region.maxX * this.actScale),
+      playerStartX: Math.round(region.playerStartX * this.actScale),
+    }));
+
+    // Limites Globais do Mundo Contínuo Expandido (72.800px)
+    this.worldBounds = { x: 0, y: 0, width: Math.round(56000 * this.actScale), height: 2600 };
     // Shared coordinates for rendering, physical arrival and the ending scene.
     this.finalPortals = [
-      { route: 'garden', x: 54380, floorY: 2050, label: 'O jardim do amanhã' },
-      { route: 'sky', x: 54380, floorY: 1350, label: 'Além do arco-íris' }
+      { route: 'garden', x: Math.round(54380 * this.actScale), floorY: 2050, label: 'O jardim do amanhã' },
+      { route: 'sky', x: Math.round(54380 * this.actScale), floorY: 1350, label: 'Além do arco-íris' }
     ];
 
     // Todas as Plataformas do Mundo Integradas em Piso Contínuo
@@ -227,27 +238,36 @@ class LevelDesignManager {
       { x: 51600, y: 1500, width: 680, height: 34 },
       { x: 52400, y: 1430, width: 260, height: 24, isOneWay: true },
       // An open, raised terrace, not a wall: both endings remain accessible.
-      { x: 52800, y: 1350, width: 2200, height: 32, isOneWay: true },
-
-      // The acts are now longer, so add a second staggered route of floating
-      // platforms through every region. They remain one-way above the
-      // continuous floor, avoiding unfair gaps while enriching each act.
-      ...this.regions.flatMap((region) => [
-        [520, 1960, 210],
-        [1840, 1860, 190],
-        [3160, 1760, 220],
-        [4380, 1680, 220],
-        [5600, 1810, 220],
-      ].filter(([offset, , width]) => offset + width < (region.maxX - region.minX) - 120)
-        .map(([offset, y, width]) => ({
-          x: region.minX + offset,
-          y,
-          width,
-          height: 22,
-          isOneWay: true,
-        })))
+      { x: 52800, y: 1350, width: 2200, height: 32, isOneWay: true }
     ];
-    return list;
+
+    // Stretch every existing horizontal landmark with the act length.
+    const scaled = list.map((platform) => ({
+      ...platform,
+      x: Math.round(platform.x * this.actScale),
+      width: Math.round(platform.width * this.actScale),
+    }));
+
+    // Keep the extra floating route in every enlarged act, with the same
+    // relative spacing as before and no change to the continuous floor.
+    const extraOffsets = [
+      [520, 1960, 210],
+      [1840, 1860, 190],
+      [3160, 1760, 220],
+      [4380, 1680, 220],
+      [5600, 1810, 220],
+    ];
+    for (const region of this.regions) {
+      for (const [offset, y, width] of extraOffsets) {
+        const x = region.minX + Math.round(offset * this.actScale);
+        const scaledWidth = Math.round(width * this.actScale);
+        if (x + scaledWidth < region.maxX - 120) {
+          scaled.push({ x, y, width: scaledWidth, height: 22, isOneWay: true });
+        }
+      }
+    }
+
+    return scaled;
   }
 
   setupWorldNPCs(npcMgr) {
@@ -255,7 +275,7 @@ class LevelDesignManager {
     // Região 1: Sábio Mago
     // Feet sit exactly on the continuous floor at y=2050. The mage is a
     // stationary colored encounter, so his sprite never bobs or changes pose.
-    npcMgr.addNPC('mago', 5400, 1905, 110, 145, 'O Sábio Mago 🔮');
+    npcMgr.addNPC('mago', Math.round(5400 * this.actScale), 1905, 110, 145, 'O Sábio Mago 🔮');
     // The mage is the only stationary encounter; the other family members
     // appear through the playable story rather than as end-of-act NPCs.
   }
@@ -288,7 +308,8 @@ class LevelDesignManager {
     const bonusStarOffsets = [950, 2750, 4450, 5700];
     this.regions.forEach((region, regionIndex) => {
       bonusStarOffsets.forEach((offset, pointIndex) => {
-        puzzleMgr.addMemoryStar(region.minX + offset, 1970, `trail${regionIndex + 1}_${pointIndex + 1}`);
+        const baseRegionStart = Math.round(region.minX / this.actScale);
+        puzzleMgr.addMemoryStar(baseRegionStart + offset, 1970, `trail${regionIndex + 1}_${pointIndex + 1}`);
       });
     });
 
@@ -325,6 +346,24 @@ class LevelDesignManager {
     puzzleMgr.addColorBeacon(39600, 1950, 'green', 'O Resgate da Princesa Maria Rosa');
     puzzleMgr.addColorBeacon(46350, 1950, 'gold', 'A Ternura do Grande Baile Real');
     puzzleMgr.addColorBeacon(53400, 1280, 'gold', 'O Amor que Floresce no Coração: Adoção Plena');
+
+    this.scalePuzzleGeometry(puzzleMgr);
+  }
+
+  scalePuzzleGeometry(puzzleMgr) {
+    const stretch = (items) => {
+      for (const item of items) {
+        if (Number.isFinite(item.x)) item.x = Math.round(item.x * this.actScale);
+        if (Number.isFinite(item.width)) item.width = Math.round(item.width * this.actScale);
+      }
+    };
+    stretch(puzzleMgr.memoryStars);
+    stretch(puzzleMgr.paintBrushes);
+    stretch(puzzleMgr.waterVolumes);
+    stretch(puzzleMgr.bloomingFlowers);
+    stretch(puzzleMgr.bouncyMushrooms);
+    stretch(puzzleMgr.windUpdrafts);
+    stretch(puzzleMgr.colorBeacons);
   }
 
   getRegionByX(worldX) {
