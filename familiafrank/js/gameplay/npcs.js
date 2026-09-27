@@ -28,8 +28,8 @@ class GrisNPC {
 
     if (this.type === 'mago') {
       framePaths = [
-        'assets/images/characters/mago_idle.png?v=8.1',
-        'assets/images/characters/mago_magic.png?v=8.1'
+        // Clean, color cutout with the feet and staff fully inside the sprite.
+        'assets/images/characters/mago_idle_clean.png?v=29.1'
       ];
     } else if (this.type === 'matheus_baby' || this.type === 'matheus_stand') {
       framePaths = [
@@ -75,6 +75,7 @@ class GrisNPC {
   }
 
   update(dt) {
+    if (this.type === 'mago') return;
     this.timer += dt * 3.0;
     this.frameTimer += dt * 2.8;
   }
@@ -95,11 +96,13 @@ class GrisNPC {
 
   draw(ctx, time, paletteKey) {
     ctx.save();
-    const floatY = Math.sin(this.timer) * 4;
+    const floatY = this.type === 'mago' ? 0 : Math.sin(this.timer) * 4;
     const drawX = Math.round(this.x);
     const drawY = Math.round(this.y + floatY);
     // Aumenta somente a arte; área de encontro e posição lógica não mudam.
-    const visualScale = 1.6;
+    // Keep NPC art consistent with the 30% visual enlargement used by the
+    // playable characters; the logical floor anchor remains unchanged.
+    const visualScale = 1.6 * 1.3;
     const visualW = Math.round(this.width * visualScale);
     const visualH = Math.round(this.height * visualScale);
     const visualX = drawX - Math.round((visualW - this.width) / 2);
@@ -113,7 +116,7 @@ class GrisNPC {
       centerX, centerY, this.width * 0.95
     );
 
-    const isGray = paletteKey === 'gray';
+    const isGray = paletteKey === 'gray' && this.type !== 'mago';
     grad.addColorStop(0, isGray ? 'rgba(255, 255, 255, 0.45)' : 'rgba(255, 235, 160, 0.55)');
     grad.addColorStop(0.7, isGray ? 'rgba(180, 180, 180, 0.2)' : 'rgba(255, 215, 120, 0.25)');
     grad.addColorStop(1, 'rgba(255, 255, 255, 0)');

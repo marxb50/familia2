@@ -346,7 +346,9 @@ class GrisIndividualCharacter {
 
     // Escala visual: personagens mais legíveis sem mudar a jogabilidade.
     // O collider, a física, a posição dos pés e a jogabilidade permanecem iguais.
-    const visualScale = 1.6;
+    // Enlarge the artwork by 30% in every act without changing the
+    // logical size, collision box, or the feet anchor used by gameplay.
+    const visualScale = 1.6 * 1.3;
     spriteW = Math.round(spriteW * visualScale);
     spriteH = Math.round(spriteH * visualScale);
     const offsetY = -spriteH;

@@ -227,7 +227,25 @@ class LevelDesignManager {
       { x: 51600, y: 1500, width: 680, height: 34 },
       { x: 52400, y: 1430, width: 260, height: 24, isOneWay: true },
       // An open, raised terrace, not a wall: both endings remain accessible.
-      { x: 52800, y: 1350, width: 2200, height: 32, isOneWay: true }
+      { x: 52800, y: 1350, width: 2200, height: 32, isOneWay: true },
+
+      // The acts are now longer, so add a second staggered route of floating
+      // platforms through every region. They remain one-way above the
+      // continuous floor, avoiding unfair gaps while enriching each act.
+      ...this.regions.flatMap((region) => [
+        [520, 1960, 210],
+        [1840, 1860, 190],
+        [3160, 1760, 220],
+        [4380, 1680, 220],
+        [5600, 1810, 220],
+      ].filter(([offset, , width]) => offset + width < (region.maxX - region.minX) - 120)
+        .map(([offset, y, width]) => ({
+          x: region.minX + offset,
+          y,
+          width,
+          height: 22,
+          isOneWay: true,
+        })))
     ];
     return list;
   }
@@ -235,7 +253,9 @@ class LevelDesignManager {
   setupWorldNPCs(npcMgr) {
     npcMgr.clear();
     // Região 1: Sábio Mago
-    npcMgr.addNPC('mago', 5400, 1875, 110, 145, 'O Sábio Mago 🔮');
+    // Feet sit exactly on the continuous floor at y=2050. The mage is a
+    // stationary colored encounter, so his sprite never bobs or changes pose.
+    npcMgr.addNPC('mago', 5400, 1905, 110, 145, 'O Sábio Mago 🔮');
     // The mage is the only stationary encounter; the other family members
     // appear through the playable story rather than as end-of-act NPCs.
   }
