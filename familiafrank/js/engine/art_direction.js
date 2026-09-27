@@ -12,9 +12,32 @@ class StorybookArt {
       { name: 'A família reunida', stone: '#a59372', shade: '#464757', rim: '#f3dfa8', leaf: '#9caf87', light: '#fff0c9', garden: true }
     ];
     this.backgroundCache = new Map();
+    this.platformPaletteCache = new Map();
   }
 
   theme(index) { return this.themes[Math.max(0, Math.min(7, index))]; }
+
+  platformTheme(index, progress = 1) {
+    const gray = index === 0 ? 1 : index === 2 ? 1 - progress * 0.62 : 0;
+    const key = `${index}:${gray}`;
+    if (this.platformPaletteCache.has(key)) return this.platformPaletteCache.get(key);
+    const tint = (hex, alpha = 1) => {
+      const rgb = [1, 3, 5].map(start => parseInt(hex.slice(start, start + 2), 16));
+      const luminance = rgb[0] * 0.2126 + rgb[1] * 0.7152 + rgb[2] * 0.0722;
+      const channels = rgb.map(channel => Math.round(channel + (luminance - channel) * gray));
+      return `rgba(${channels.join(',')},${alpha})`;
+    };
+    const theme = this.theme(index);
+    const palette = {
+      ...theme,
+      stone: tint(theme.stone), shade: tint(theme.shade),
+      rim: tint(theme.rim), leaf: tint(theme.leaf),
+      floorShadow: tint('#202e35'), arcadeShadow: tint('#18272e'),
+      joints: tint('#fff4da', 0.22)
+    };
+    this.platformPaletteCache.set(key, palette);
+    return palette;
+  }
 
   backgroundTile(img, index, progress) {
     if (!img?.complete || !img.naturalWidth) return null;
@@ -84,10 +107,10 @@ class StorybookArt {
     for (const p of platforms) {
       if (p.x > bounds.right + 90 || p.x + p.width < bounds.left - 90 || p.y > bounds.bottom + 80 || p.y + Math.max(p.height, 90) < bounds.top) continue;
       const index = engine?.levels?.getRegionByX(Math.max(0, Math.min(54999, p.width > 10000 ? (bounds.left + bounds.right) / 2 : p.x))).index || 0;
-      const t = this.theme(index);
+      // The gray palette is prepared once. Filtering every fill/stroke here
+      // repeatedly rasterized the entire castle floor, especially in Act I.
+      const t = this.platformTheme(index, engine?.renderer.matheusColorProgress ?? 1);
       ctx.save();
-      if (index === 0) ctx.filter = 'grayscale(1)';
-      if (index === 2) ctx.filter = `grayscale(${1 - (engine?.renderer.matheusColorProgress || 0) * 0.62})`;
       const left = Math.max(p.x, bounds.left - 80);
       const right = Math.min(p.x + p.width, bounds.right + 80);
       const deep = p.height > 80;
@@ -96,7 +119,7 @@ class StorybookArt {
       const stone = ctx.createLinearGradient(0, p.y, 0, p.y + Math.min(h, 200));
       stone.addColorStop(0, t.stone);
       stone.addColorStop(0.25, t.shade);
-      stone.addColorStop(1, '#202e35');
+      stone.addColorStop(1, t.floorShadow);
       ctx.fillStyle = stone;
       ctx.beginPath();
       ctx.roundRect(left, p.y, right - left, h, deep ? 0 : [5, 5, 16, 16]);
@@ -105,7 +128,7 @@ class StorybookArt {
       ctx.fillRect(left, p.y, right - left, 5);
       ctx.fillStyle = t.stone;
       ctx.fillRect(left + 2, p.y + 8, right - left - 4, 10);
-      ctx.strokeStyle = 'rgba(255,244,218,0.22)';
+      ctx.strokeStyle = t.joints;
       ctx.lineWidth = 1;
       for (let x = Math.ceil(left / 64) * 64; x < right; x += 64) {
         ctx.beginPath(); ctx.moveTo(x, p.y + 5); ctx.lineTo(x - 6, p.y + 25); ctx.stroke();
@@ -135,7 +158,7 @@ class StorybookArt {
       } else if (deep) {
         // Draw only visible arcade bays, not all 57,000 pixels of world architecture.
         for (let x = Math.floor(left / 220) * 220; x < right; x += 220) {
-          ctx.fillStyle = '#18272e';
+          ctx.fillStyle = t.arcadeShadow;
           ctx.beginPath();
           ctx.roundRect(x + 30, p.y + 45, 150, h, [75, 75, 0, 0]);
           ctx.fill();
