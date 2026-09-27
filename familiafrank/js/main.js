@@ -402,6 +402,22 @@ class GrisGameEngine {
     this.updateHUD();
   }
 
+  updateMatheusAutoColor() {
+    if (this.levels.currentRegionIndex !== 2 || this.character?.mode !== 'matheus') return;
+
+    const region = this.levels.regions[2];
+    const playableDistance = Math.max(1, region.maxX - region.playerStartX);
+    const travelProgress = Math.max(0, Math.min(1,
+      (this.character.x - region.playerStartX) / playableDistance
+    ));
+    // Ten gentle color steps keep the background cache light while making the
+    // restoration visibly gradual across the enlarged act.
+    const automaticProgress = Math.round(travelProgress * 10) / 10;
+    if (automaticProgress > this.renderer.matheusColorProgress) {
+      this.renderer.setMatheusColorProgress(automaticProgress);
+    }
+  }
+
   // Alternar o líder do casal (Rei e Rainha) ou membro da família no Ato 8
   swapCharacter() {
     if (!this.character) return;
@@ -577,6 +593,10 @@ class GrisGameEngine {
 
     // 6. Verificar Progressão Contínua de Região (Estilo Metroid)
     this.checkRegionProgression();
+    // No Ato III a cor também desperta naturalmente com o avanço do jogador.
+    // Os pincéis continuam podendo adiantar essa restauração, mas nunca são
+    // obrigatórios para que a fase fique colorida até o fim.
+    this.updateMatheusAutoColor();
 
     // Ending choice is physical: arrive on the ground or on the upper terrace.
     if (this.levels.currentRegionIndex === 7 && this.character.onGround) {
