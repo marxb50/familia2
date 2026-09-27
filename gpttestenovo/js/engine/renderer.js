@@ -7,13 +7,19 @@
 class WatercolorRenderer {
   constructor(canvas) {
     this.canvas = canvas;
-    this.width = canvas.width = 1920;
-    this.height = canvas.height = 1080;
+    // Keep a 1920×1080 logical scene, but rasterize fewer pixels on phones.
+    this.width = 1920;
+    this.height = 1080;
+    this.renderScale = this.getRenderScale();
+    canvas.width = Math.round(this.width * this.renderScale);
+    canvas.height = Math.round(this.height * this.renderScale);
 
     // Renderização Cartoonesca 2D Direta em Alta Resolução (Cores vivas do Livro)
     this.postProcessor = null;
     this.sceneCanvas = this.canvas;
-    this.ctx = this.canvas.getContext('2d');
+    this.ctx = this.canvas.getContext('2d', { alpha: false, desynchronized: true });
+    this.ctx.setTransform(this.renderScale, 0, 0, this.renderScale, 0, 0);
+    window.addEventListener('resize', () => this.resizeForViewport(), { passive: true });
 
     // Paletas Cartoonescas Vivas e Alegres por Capítulo
     this.palettes = {
@@ -74,10 +80,32 @@ class WatercolorRenderer {
 
   loadBackgroundImages() {
     for (let i = 1; i <= 8; i++) {
-      const img = new Image();
-      img.src = `assets/images/backgrounds/bg_level${i}.png`;
-      this.bgImages[`bg${i}`] = img;
+      this.bgImages[`bg${i}`] = new Image();
     }
+  }
+
+  getRenderScale() {
+    const viewportWidth = window.innerWidth || 1920;
+    if (viewportWidth <= 600) return 0.55;
+    if (viewportWidth <= 900) return 0.75;
+    return 1;
+  }
+
+  resizeForViewport() {
+    const nextScale = this.getRenderScale();
+    if (nextScale === this.renderScale) return;
+    this.renderScale = nextScale;
+    this.canvas.width = Math.round(this.width * nextScale);
+    this.canvas.height = Math.round(this.height * nextScale);
+    this.ctx = this.canvas.getContext('2d', { alpha: false, desynchronized: true });
+    this.ctx.setTransform(nextScale, 0, 0, nextScale, 0, 0);
+  }
+
+  preloadBackground(index) {
+    const img = this.bgImages[`bg${index + 1}`];
+    if (!img || img.src) return img;
+    img.src = `assets/images/backgrounds/bg_level${index + 1}.png`;
+    return img;
   }
 
   setPalette(key) {

@@ -91,6 +91,9 @@ class GrisGameEngine {
     Promise.all(firstImages.map(img => img.decode().catch(() => {}))).then(() => {
       this.loadingArt = false;
       document.getElementById('loading-art').hidden = true;
+      const preloadNext = () => this.renderer.preloadBackground(Math.min(7, startIdx + 1));
+      if (window.requestIdleCallback) window.requestIdleCallback(preloadNext, { timeout: 3000 });
+      else window.setTimeout(preloadNext, 500);
       if (!this.menuOpen) {
         this.showChapterTitle(this.levels.getCurrentChapter());
         this.showStoryNarration(this.levels.getCurrentChapter());
@@ -112,6 +115,7 @@ class GrisGameEngine {
     this.finalComplete = false;
 
     this.levels.currentRegionIndex = chapterIndex;
+    this.renderer.preloadBackground(chapterIndex);
 
     // Posicionar Personagem no ponto de início da região
     const startX = region.playerStartX || 250;
@@ -150,9 +154,16 @@ class GrisGameEngine {
   // Verificação de Progressão Contínua (Estilo Metroid: sem corte, sem teleporte)
   checkRegionProgression() {
     const { index, region } = this.levels.getRegionByX(this.character.x);
+    // Background blending begins before the region boundary; fetch its art
+    // while the player still has room to run so the transition stays smooth.
+    if (index < 7 && region.maxX - this.character.x < 1800) {
+      this.renderer.preloadBackground(index + 1);
+    }
 
     if (index !== this.levels.currentRegionIndex) {
       this.levels.currentRegionIndex = index;
+      this.renderer.preloadBackground(index);
+      if (index < 7) this.renderer.preloadBackground(index + 1);
 
       // Transição suave de paleta e música ambiente
       this.renderer.setPalette(region.colorKey);

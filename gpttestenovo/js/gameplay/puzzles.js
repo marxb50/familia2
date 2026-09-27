@@ -256,39 +256,39 @@ class InteractivePuzzleManager {
       if (star.collected) continue;
       star.pulseTimer += dt * 3;
       star.y = star.baseY + Math.sin(star.pulseTimer) * 8;
+      const reach = star.radius + 35;
+      const dx = charCenterX - star.x;
+      const dy = charCenterY - star.y;
+      if (Math.abs(dx) > reach || Math.abs(dy) > reach || dx * dx + dy * dy >= reach * reach) continue;
+      star.collected = true;
+      this.collectedStarsCount++;
+      particles.spawnMemoryStars(star.x, star.y, 25, '#ffd166');
+      audio.playMemoryStarSound(1.0 + (this.collectedStarsCount * 0.12));
 
-      const dist = Math.hypot(charCenterX - star.x, charCenterY - star.y);
-      if (dist < star.radius + 35) {
-        star.collected = true;
-        this.collectedStarsCount++;
-        particles.spawnMemoryStars(star.x, star.y, 25, '#ffd166');
-        audio.playMemoryStarSound(1.0 + (this.collectedStarsCount * 0.12));
+      // Registrar ponto na constelação
+      this.constellationLinks.push({ x: star.x, y: star.y });
 
-        // Registrar ponto na constelação
-        this.constellationLinks.push({ x: star.x, y: star.y });
+      // Adicionar à constelação viva de estrelas seguidoras (como em GRIS)
+      this.followingStars.push({
+        currentX: star.x,
+        currentY: star.y,
+        angleOffset: this.followingStars.length * 1.5,
+        distOffset: 45 + (this.followingStars.length % 3) * 15
+      });
 
-        // Adicionar à constelação viva de estrelas seguidoras (como em GRIS)
-        this.followingStars.push({
-          currentX: star.x,
-          currentY: star.y,
-          angleOffset: this.followingStars.length * 1.5,
-          distOffset: 45 + (this.followingStars.length % 3) * 15
-        });
-
-        // Criar degrau de constelação estelar permanente
-        this.temporaryBridges.push({
-          x: star.x - 70,
-          y: star.y + 20,
-          width: 140,
-          height: 14,
-          isConstellation: true,
-          color: '#ffd166',
-          isOneWay: true,
-          life: 9999,
-          maxLife: 9999,
-          alpha: 0.95
-        });
-      }
+      // Criar degrau de constelação estelar permanente
+      this.temporaryBridges.push({
+        x: star.x - 70,
+        y: star.y + 20,
+        width: 140,
+        height: 14,
+        isConstellation: true,
+        color: '#ffd166',
+        isOneWay: true,
+        life: 9999,
+        maxLife: 9999,
+        alpha: 0.95
+      });
     }
 
     // Pincéis mágicos do Matheus: esta interação só existe enquanto o
@@ -569,6 +569,8 @@ class InteractivePuzzleManager {
 
     // 0.3 Desenhar Estrelas Seguidoras (Constelação viva que acompanha o personagem)
     for (const fs of this.followingStars) {
+      if (fs.currentX < camBounds.left - 30 || fs.currentX > camBounds.right + 30 ||
+          fs.currentY < camBounds.top - 30 || fs.currentY > camBounds.bottom + 30) continue;
       ctx.save();
       ctx.translate(fs.currentX, fs.currentY);
       const starGlow = 14 + Math.sin(time * 5 + fs.angleOffset) * 4;
@@ -601,7 +603,8 @@ class InteractivePuzzleManager {
 
     // 2. Desenhar Estrelas de Memória
     for (const star of this.memoryStars) {
-      if (star.collected) continue;
+      if (star.collected || star.x < camBounds.left - 40 || star.x > camBounds.right + 40 ||
+          star.y < camBounds.top - 40 || star.y > camBounds.bottom + 40) continue;
       ctx.save();
       ctx.translate(star.x, star.y);
 
@@ -632,7 +635,8 @@ class InteractivePuzzleManager {
     // Pincéis flutuantes sobre as poças azuis: não usam o diamante branco das
     // estrelas e permanecem coloridos mesmo quando o cenário está sem cor.
     for (const brush of this.paintBrushes) {
-      if (brush.collected) continue;
+      if (brush.collected || brush.x < camBounds.left - 50 || brush.x > camBounds.right + 50 ||
+          brush.y < camBounds.top - 50 || brush.y > camBounds.bottom + 50) continue;
       ctx.save();
       ctx.translate(brush.x, brush.y);
 
