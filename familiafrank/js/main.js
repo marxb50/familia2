@@ -460,11 +460,8 @@ class GrisGameEngine {
         hintEl.textContent = 'Rei & Rainha na Carruagem Real • Rumo ao Vilarejo para Acolher Matheus Bebê!';
         avatarEl.src = 'assets/images/characters/royal_carriage.png';
       } else if (this.character.mode === 'couple') {
-        const isKing = this.character.leaderType === 'king';
-        hintEl.textContent = isKing
-          ? 'Rei liderando • Pressione C para passar a liderança à Rainha | Caminhando Juntos pelo Amor'
-          : 'Rainha liderando • Pressione C para passar a liderança ao Rei | Caminhando Juntos pelo Amor';
-        avatarEl.src = isKing ? 'assets/images/characters/king_idle.png' : 'assets/images/characters/queen_idle.png';
+        hintEl.textContent = 'Rainha liderando • Rei acompanhando | Caminhando Juntos pelo Amor';
+        avatarEl.src = 'assets/images/characters/queen_idle.png';
       } else if (charType === 'matheus') {
         hintEl.textContent = 'Príncipe Matheus • Salto Duplo | Nadar em Bolhas | Pintar Pontes de Tinta (J)';
         avatarEl.src = 'assets/images/characters/matheus_brush_idle.png';

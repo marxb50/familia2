@@ -384,7 +384,8 @@ class GrisIndividualCharacter {
 class GrisCharacter {
   constructor(mode = 'couple', startX = 200, startY = 800) {
     this.mode = mode; // 'couple', 'matheus', 'pedro', 'pedro_horse', 'maria_rosa', 'family_swap'
-    this.leaderType = 'king';
+    // When the royal couple is active, the Queen always leads the formation.
+    this.leaderType = 'queen';
     this.familyList = ['matheus', 'pedro', 'maria_rosa', 'king', 'queen'];
     this.familyIdx = 0;
     this.familyParty = [];
@@ -403,17 +404,17 @@ class GrisCharacter {
     this.mode = mode;
 
     if (mode === 'couple') {
-      this.leaderType = 'king';
-      this.king.x = startX;
-      this.king.y = startY;
-      this.king.vx = 0;
-      this.king.vy = 0;
-
-      this.queen.x = startX - 70;
+      this.leaderType = 'queen';
+      this.queen.x = startX;
       this.queen.y = startY;
       this.queen.vx = 0;
       this.queen.vy = 0;
       this.queen.facing = 1;
+
+      this.king.x = startX - 70;
+      this.king.y = startY;
+      this.king.vx = 0;
+      this.king.vy = 0;
       this.singleChar = null;
     } else if (mode === 'family_swap') {
       // No ato final a família inteira atravessa o pátio junta. Matheus lidera
@@ -505,20 +506,10 @@ class GrisCharacter {
   // Alternar o líder do casal com 'C' ou alternar na família
   swap() {
     if (this.mode === 'couple') {
-      this.leaderType = this.leaderType === 'king' ? 'queen' : 'king';
-      if (this.active.y > 2050 - this.active.height) {
-        this.active.y = 2050 - this.active.height;
-        this.active.vy = 0;
-        this.active.onGround = true;
-      }
-      window.gameEngine?.particles?.spawnWatercolorBlobs(
-        this.active.x + this.active.width / 2,
-        this.active.y + this.active.height / 2,
-        this.active.getThemeColor(),
-        14
-      );
-      window.gameEngine?.audio?.playMemoryStarSound(1.3);
-      return true;
+      // The Queen is intentionally always first when the royal couple is
+      // active; the swap control must not put the King in front of her.
+      this.leaderType = 'queen';
+      return false;
     } else if (this.mode === 'family_swap') {
       // O encerramento é uma corrida coletiva: C não desmonta a formação.
       return false;
